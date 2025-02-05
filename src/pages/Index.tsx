@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import CourtDisplay from "@/components/CourtDisplay";
+import { X } from "lucide-react";
 
 interface Court {
   team1: string[];
@@ -40,6 +42,14 @@ const Index = () => {
       return data as Participant[];
     },
   });
+
+  const handleClear = () => {
+    setTemporaryPlayers("");
+    setSelectedParticipants([]);
+    setRotations([]);
+    setIsKingCourt(false);
+    toast.success("All fields cleared");
+  };
 
   const parsePlayers = () => {
     const temporary = temporaryPlayers.split(/[\n,]/).map(s => s.trim()).filter(s => s !== "");
@@ -171,7 +181,18 @@ const Index = () => {
 
         <Card className="p-6 mb-6">
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Select Participants</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Select Participants</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClear}
+                className="gap-2"
+              >
+                <X className="h-4 w-4" />
+                Clear All
+              </Button>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {participants?.map((participant) => (
                 <div key={participant.id} className="flex items-center space-x-2">
