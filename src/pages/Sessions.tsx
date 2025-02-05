@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Download } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSessions } from "@/hooks/useSessions";
@@ -209,12 +209,14 @@ const Sessions = () => {
                   <div className="text-center py-4">Loading schedule...</div>
                 ) : scheduleData ? (
                   <div className="space-y-6">
-                    <div className="flex justify-end mb-4">
-                      <DownloadPdfButton 
-                        contentId="session-schedule"
-                        fileName="session-schedule"
-                      />
-                    </div>
+                    <DownloadPdfButton 
+                      contentId="session-schedule"
+                      fileName="session-schedule"
+                      className="w-full p-6 text-lg flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
+                    >
+                      <Download className="w-6 h-6" />
+                      Download Session Schedule
+                    </DownloadPdfButton>
                     <div id="session-schedule">
                       {scheduleData.randomRotations.length > 0 && (
                         <CourtDisplay 
@@ -245,3 +247,4 @@ const Sessions = () => {
 };
 
 export default Sessions;
+
