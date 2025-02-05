@@ -18,30 +18,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 
 const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const loadFont = async () => {
-      const font = new FontFace(
-        'Catfiles',
-        'url(https://dl.dafont.com/dl/?f=catfiles)'
-      );
-
-      try {
-        await font.load();
-        document.fonts.add(font);
-        console.log('Catfiles font loaded successfully');
-      } catch (error) {
-        console.error('Error loading Catfiles font:', error);
-      }
-    };
-
-    loadFont();
-  }, []);
 
   const items = [
     {
