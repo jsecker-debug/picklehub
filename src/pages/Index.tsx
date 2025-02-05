@@ -2,28 +2,16 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import CourtDisplay from "@/components/CourtDisplay";
 import { X } from "lucide-react";
-
-interface Court {
-  team1: string[];
-  team2: string[];
-}
-
-interface Rotation {
-  courts: Court[];
-  resters: string[];
-}
-
-interface Participant {
-  id: string;
-  name: string;
-}
+import CourtDisplay from "@/components/CourtDisplay";
+import ParticipantSelection from "@/components/scheduler/ParticipantSelection";
+import TemporaryPlayersInput from "@/components/scheduler/TemporaryPlayersInput";
+import GenerateButtons from "@/components/scheduler/GenerateButtons";
+import { parsePlayers, shuffle } from "@/utils/gameUtils";
+import type { Participant, Rotation, Court } from "@/types/scheduler";
 
 const Index = () => {
   const [temporaryPlayers, setTemporaryPlayers] = useState("");
@@ -51,23 +39,8 @@ const Index = () => {
     toast.success("All fields cleared");
   };
 
-  const parsePlayers = () => {
-    const temporary = temporaryPlayers.split(/[\n,]/).map(s => s.trim()).filter(s => s !== "");
-    const selected = participants
-      ?.filter(p => selectedParticipants.includes(p.id))
-      .map(p => p.name) || [];
-    return [...selected, ...temporary];
-  };
-
-  const shuffle = (array: any[]) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-  };
-
   const generatePart1 = () => {
-    const players = parsePlayers();
+    const players = parsePlayers(temporaryPlayers, selectedParticipants, participants || []);
     if (players.length < 4) {
       toast.error("Please select at least 4 players");
       return;
@@ -124,7 +97,7 @@ const Index = () => {
   };
 
   const generatePart2 = () => {
-    const players = parsePlayers();
+    const players = parsePlayers(temporaryPlayers, selectedParticipants, participants || []);
     if (players.length < 4) {
       toast.error("Please select at least 4 players");
       return;
@@ -193,55 +166,28 @@ const Index = () => {
                 Clear All
               </Button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {participants?.map((participant) => (
-                <div key={participant.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={participant.id}
-                    checked={selectedParticipants.includes(participant.id)}
-                    onCheckedChange={(checked) => {
-                      setSelectedParticipants(prev =>
-                        checked
-                          ? [...prev, participant.id]
-                          : prev.filter(id => id !== participant.id)
-                      );
-                    }}
-                  />
-                  <label
-                    htmlFor={participant.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {participant.name}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Add Temporary Players</h3>
-            <Textarea
-              value={temporaryPlayers}
-              onChange={(e) => setTemporaryPlayers(e.target.value)}
-              placeholder="Enter temporary player names, separated by commas or new lines"
-              className="mb-4 min-h-[120px]"
+            <ParticipantSelection
+              participants={participants}
+              selectedParticipants={selectedParticipants}
+              onParticipantToggle={(id, checked) => {
+                setSelectedParticipants(prev =>
+                  checked
+                    ? [...prev, id]
+                    : prev.filter(pid => pid !== id)
+                );
+              }}
             />
           </div>
 
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button
-              onClick={generatePart1}
-              className="bg-primary hover:bg-primary/90"
-            >
-              Generate First Half Schedule
-            </Button>
-            <Button
-              onClick={generatePart2}
-              className="bg-secondary hover:bg-secondary/90"
-            >
-              Generate King of the Court
-            </Button>
-          </div>
+          <TemporaryPlayersInput
+            value={temporaryPlayers}
+            onChange={setTemporaryPlayers}
+          />
+
+          <GenerateButtons
+            onGenerateSchedule={generatePart1}
+            onGenerateKingCourt={generatePart2}
+          />
         </Card>
 
         {rotations.length > 0 && (
