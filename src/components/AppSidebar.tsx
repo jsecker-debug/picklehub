@@ -89,10 +89,10 @@ export function AppSidebar() {
             <Menu className="h-6 w-6" />
           </button>
         </DrawerTrigger>
-        <DrawerContent className="flex-auto p-4">
-          <div className="relative">
-            <DrawerClose className="absolute top-0 right-0 p-2">
-              <X className="h-6 w-6" />
+        <DrawerContent className="p-4">
+          <div className="relative bg-white rounded-lg p-4">
+            <DrawerClose className="absolute -top-2 -right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100">
+              <X className="h-5 w-5" />
             </DrawerClose>
             <AppSidebarContent />
           </div>
