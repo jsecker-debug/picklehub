@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -8,16 +9,4 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase configuration');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-});
-
-// Add debug logging for Supabase operations
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Supabase auth event:', event);
-  console.log('Session state:', session ? 'Logged in' : 'Logged out');
-});
+export const supabase = createClient(supabaseUrl, supabaseKey);
