@@ -40,18 +40,23 @@ const AppSidebarContent = () => {
 
   return (
     <>
-      <div className="flex items-center h-16 px-4 mb-4 bg-[#f9fafb] shadow-sm rounded-lg">
-        <img 
-          src="/lovable-uploads/0ff7ce02-62e2-4665-b101-44281d8d042c.png"
-          alt="PickleHub Logo"
-          className="h-8 w-8 mr-2 rounded-full object-cover"
-        />
-        <span className="text-xl font-bold">PickleHub</span>
+      <div className="flex items-center justify-between h-16 px-2 mb-2 bg-[#f9fafb] shadow-sm rounded-lg">
+        <div className="flex items-center">
+          <img 
+            src="/lovable-uploads/0ff7ce02-62e2-4665-b101-44281d8d042c.png"
+            alt="PickleHub Logo"
+            className="h-8 w-8 mr-2 rounded-full object-cover"
+          />
+          <span className="text-xl font-bold">PickleHub</span>
+        </div>
+        <DrawerClose className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
+          <X className="h-5 w-5" />
+        </DrawerClose>
       </div>
       <div className="bg-white rounded-lg shadow-sm">
-        <SidebarContent className="px-2 py-2">
+        <SidebarContent className="px-1 py-1">
           <SidebarGroup>
-            <SidebarGroupContent className="space-y-1">
+            <SidebarGroupContent className="space-y-0.5">
               <SidebarMenu>
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}>
@@ -90,10 +95,7 @@ export function AppSidebar() {
           </button>
         </DrawerTrigger>
         <DrawerContent className="p-4">
-          <div className="relative bg-white rounded-lg p-4">
-            <DrawerClose className="absolute -top-2 -right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100">
-              <X className="h-5 w-5" />
-            </DrawerClose>
+          <div className="relative bg-white rounded-lg">
             <AppSidebarContent />
           </div>
         </DrawerContent>
