@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,21 @@ interface Participant {
 
 const Participants = () => {
   const [newParticipant, setNewParticipant] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Check initial auth state
+    const { data: { session } } = supabase.auth.getSession();
+    setIsAuthenticated(!!session);
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const { data: participants, isLoading, error } = useQuery({
     queryKey: ["participants"],
@@ -32,6 +46,7 @@ const Participants = () => {
       console.log('Participants fetched:', data);
       return data as Participant[];
     },
+    enabled: isAuthenticated, // Only fetch if authenticated
   });
 
   const addParticipant = useMutation({
@@ -92,6 +107,34 @@ const Participants = () => {
       addParticipant.mutate(newParticipant.trim());
     }
   };
+
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github'
+    });
+    if (error) {
+      toast.error("Failed to sign in");
+      console.error("Sign in error:", error);
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-3xl font-bold text-primary mb-4">
+            Please Sign In
+          </h1>
+          <p className="text-gray-600 mb-6">
+            You need to be signed in to manage participants
+          </p>
+          <Button onClick={handleSignIn}>
+            Sign in with GitHub
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     console.error('Render error:', error);
