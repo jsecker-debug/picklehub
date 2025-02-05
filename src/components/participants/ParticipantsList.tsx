@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 interface Participant {
@@ -33,6 +34,31 @@ export const ParticipantsList = () => {
     },
   });
 
+  const updateLevel = useMutation({
+    mutationFn: async ({ id, level }: { id: string; level: number }) => {
+      console.log('Updating participant level:', { id, level });
+      const { error } = await supabase
+        .from("participants")
+        .update({ level })
+        .eq("id", id);
+      
+      if (error) {
+        console.error('Error updating participant level:', error);
+        throw error;
+      }
+      
+      console.log('Level updated successfully');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["participants"] });
+      toast.success("Level updated successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to update level");
+      console.error("Error updating level:", error);
+    },
+  });
+
   const deleteParticipant = useMutation({
     mutationFn: async (id: string) => {
       console.log('Deleting participant:', id);
@@ -58,6 +84,13 @@ export const ParticipantsList = () => {
     },
   });
 
+  const handleLevelChange = (id: string, newValue: string) => {
+    const numericValue = parseFloat(newValue);
+    if (!isNaN(numericValue)) {
+      updateLevel.mutate({ id, level: numericValue });
+    }
+  };
+
   if (error) {
     return <div className="text-center text-red-500">Error loading participants</div>;
   }
@@ -79,9 +112,15 @@ export const ParticipantsList = () => {
               className="grid grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border"
             >
               <span>{participant.name}</span>
-              <span className="text-gray-600">
-                {participant.level ? participant.level.toFixed(2) : '0.00'}
-              </span>
+              <Input
+                type="number"
+                value={participant.level?.toString() || "0"}
+                onChange={(e) => handleLevelChange(participant.id, e.target.value)}
+                step="0.1"
+                min="0"
+                max="10"
+                className="w-24"
+              />
               <div className="flex justify-end">
                 <Button
                   variant="destructive"
