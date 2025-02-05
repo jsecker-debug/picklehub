@@ -53,14 +53,11 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
-      <SidebarTrigger asChild>
-        <div className="fixed left-4 top-4 z-40 lg:hidden">
-          <button className="p-2 hover:bg-accent rounded-md">
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
+      <SidebarTrigger>
+        <button className="fixed left-4 top-4 z-40 lg:hidden p-2 hover:bg-accent rounded-md">
+          <Menu className="h-6 w-6" />
+        </button>
       </SidebarTrigger>
     </>
   );
 }
-
