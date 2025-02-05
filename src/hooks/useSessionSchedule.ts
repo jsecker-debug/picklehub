@@ -21,12 +21,12 @@ export const useSessionSchedule = (sessionId: string | null) => {
             team1_players,
             team2_players
           ),
-          rotation_resters (
+          roation_resters (
             resting_players
           )
         `)
         .eq('session_id', sessionId)
-        .order('rotation_number', { nullsLast: true });
+        .order('rotation_number', { ascending: true });
 
       if (rotationError) throw rotationError;
 
@@ -36,7 +36,7 @@ export const useSessionSchedule = (sessionId: string | null) => {
           team1: court.team1_players,
           team2: court.team2_players
         })),
-        resters: rotation.rotation_resters[0]?.resting_players || []
+        resters: rotation.roation_resters[0]?.resting_players || []
       }));
 
       // Separate random rotations and king court rotation
