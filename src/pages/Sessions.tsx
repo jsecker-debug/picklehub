@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +27,7 @@ const Sessions = () => {
       const { data, error } = await supabase
         .from("sessions")
         .insert([{ 
-          date: date.toISOString(), 
+          Date: date.toISOString(),
           venue,
           status 
         }])
@@ -132,7 +131,7 @@ const Sessions = () => {
                 className="flex justify-between items-center p-4 border rounded-lg"
               >
                 <div>
-                  <p className="font-medium">{format(new Date(session.date), 'PPP')}</p>
+                  <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
                   <p className="text-gray-500">{session.venue}</p>
                 </div>
                 <span className={cn(
