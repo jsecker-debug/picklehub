@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import CourtDisplay from "@/components/CourtDisplay";
 
 interface Court {
@@ -15,13 +18,35 @@ interface Rotation {
   resters: string[];
 }
 
+interface Participant {
+  id: string;
+  name: string;
+}
+
 const Index = () => {
-  const [playerList, setPlayerList] = useState("");
+  const [temporaryPlayers, setTemporaryPlayers] = useState("");
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [rotations, setRotations] = useState<Rotation[]>([]);
   const [isKingCourt, setIsKingCourt] = useState(false);
 
+  const { data: participants } = useQuery({
+    queryKey: ["participants"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("participants")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data as Participant[];
+    },
+  });
+
   const parsePlayers = () => {
-    return playerList.split(/[\n,]/).map((s) => s.trim()).filter((s) => s !== "");
+    const temporary = temporaryPlayers.split(/[\n,]/).map(s => s.trim()).filter(s => s !== "");
+    const selected = participants
+      ?.filter(p => selectedParticipants.includes(p.id))
+      .map(p => p.name) || [];
+    return [...selected, ...temporary];
   };
 
   const shuffle = (array: any[]) => {
@@ -34,7 +59,7 @@ const Index = () => {
   const generatePart1 = () => {
     const players = parsePlayers();
     if (players.length < 4) {
-      toast.error("Please enter at least 4 players");
+      toast.error("Please select at least 4 players");
       return;
     }
 
@@ -91,7 +116,7 @@ const Index = () => {
   const generatePart2 = () => {
     const players = parsePlayers();
     if (players.length < 4) {
-      toast.error("Please enter at least 4 players");
+      toast.error("Please select at least 4 players");
       return;
     }
 
@@ -140,17 +165,48 @@ const Index = () => {
             Pickleball Session Scheduler
           </h1>
           <p className="text-gray-600">
-            Enter player names separated by commas or new lines
+            Select participants and add temporary players
           </p>
         </div>
 
         <Card className="p-6 mb-6">
-          <Textarea
-            value={playerList}
-            onChange={(e) => setPlayerList(e.target.value)}
-            placeholder="John Smith, Jane Doe, Mike Johnson..."
-            className="mb-4 min-h-[120px]"
-          />
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Select Participants</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {participants?.map((participant) => (
+                <div key={participant.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={participant.id}
+                    checked={selectedParticipants.includes(participant.id)}
+                    onCheckedChange={(checked) => {
+                      setSelectedParticipants(prev =>
+                        checked
+                          ? [...prev, participant.id]
+                          : prev.filter(id => id !== participant.id)
+                      );
+                    }}
+                  />
+                  <label
+                    htmlFor={participant.id}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {participant.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Add Temporary Players</h3>
+            <Textarea
+              value={temporaryPlayers}
+              onChange={(e) => setTemporaryPlayers(e.target.value)}
+              placeholder="Enter temporary player names, separated by commas or new lines"
+              className="mb-4 min-h-[120px]"
+            />
+          </div>
+
           <div className="flex flex-wrap gap-4 justify-center">
             <Button
               onClick={generatePart1}
