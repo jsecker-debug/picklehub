@@ -88,7 +88,7 @@ export function AppSidebar() {
             <Menu className="h-6 w-6" />
           </button>
         </DrawerTrigger>
-        <DrawerContent side="top" className="h-[80vh]">
+        <DrawerContent className="h-[80vh]">
           <div className="p-4">
             <AppSidebarContent />
           </div>
@@ -103,3 +103,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+
