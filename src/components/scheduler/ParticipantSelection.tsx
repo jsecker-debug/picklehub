@@ -1,4 +1,3 @@
-
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Participant } from "@/types/scheduler";
 
@@ -14,7 +13,7 @@ const ParticipantSelection = ({
   onParticipantToggle,
 }: ParticipantSelectionProps) => {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {participants?.map((participant) => (
         <div key={participant.id} className="flex items-center space-x-2">
           <Checkbox
