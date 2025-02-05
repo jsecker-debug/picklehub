@@ -29,7 +29,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="w-64 p-2 bg-[#f9fafb]">
-      <div className="flex items-center h-16 px-4 mb-4 bg-white shadow-sm rounded-lg">
+      <div className="flex items-center h-16 px-4 mb-4 bg-[#f9fafb] shadow-sm rounded-lg">
         <img 
           src="/lovable-uploads/0ff7ce02-62e2-4665-b101-44281d8d042c.png"
           alt="PickleHub Logo"
