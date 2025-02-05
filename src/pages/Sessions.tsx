@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -209,28 +208,36 @@ const Sessions = () => {
                   <div className="text-center py-4">Loading schedule...</div>
                 ) : scheduleData ? (
                   <div className="space-y-6 pt-4">
-                    <DownloadPdfButton 
-                      contentId="session-schedule"
-                      fileName="session-schedule"
-                      className="w-full p-6 text-lg flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
-                    >
-                      <Download className="w-6 h-6" />
-                      Download Session Schedule
-                    </DownloadPdfButton>
-                    <div id="session-schedule">
-                      {scheduleData.randomRotations.length > 0 && (
-                        <CourtDisplay 
-                          rotations={scheduleData.randomRotations} 
-                          isKingCourt={false} 
-                        />
-                      )}
-                      {scheduleData.kingCourtRotation && (
-                        <CourtDisplay 
-                          rotations={[scheduleData.kingCourtRotation]} 
-                          isKingCourt={true} 
-                        />
-                      )}
-                    </div>
+                    {(scheduleData.randomRotations.length > 0 || scheduleData.kingCourtRotation) ? (
+                      <>
+                        <DownloadPdfButton 
+                          contentId="session-schedule"
+                          fileName="session-schedule"
+                          className="w-full p-6 text-lg flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
+                        >
+                          <Download className="w-6 h-6" />
+                          Download Session Schedule
+                        </DownloadPdfButton>
+                        <div id="session-schedule">
+                          {scheduleData.randomRotations.length > 0 && (
+                            <CourtDisplay 
+                              rotations={scheduleData.randomRotations} 
+                              isKingCourt={false} 
+                            />
+                          )}
+                          {scheduleData.kingCourtRotation && (
+                            <CourtDisplay 
+                              rotations={[scheduleData.kingCourtRotation]} 
+                              isKingCourt={true} 
+                            />
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        No Session Generated
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-4 text-gray-500">
@@ -247,4 +254,3 @@ const Sessions = () => {
 };
 
 export default Sessions;
-
