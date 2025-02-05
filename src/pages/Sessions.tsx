@@ -11,12 +11,14 @@ import { cn } from "@/lib/utils";
 import { PlusIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useSessions } from "@/hooks/useSessions";
 
 const Sessions = () => {
   const [date, setDate] = useState<Date>();
   const [venue, setVenue] = useState<string>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { data: sessions, isLoading, error } = useSessions();
 
   const addSession = useMutation({
     mutationFn: async ({ date, venue }: { date: Date; venue: string }) => {
@@ -26,7 +28,7 @@ const Sessions = () => {
       const { data, error } = await supabase
         .from("sessions")
         .insert([{ 
-          date, 
+          date: date.toISOString(), 
           venue,
           status 
         }])
@@ -61,6 +63,10 @@ const Sessions = () => {
     addSession.mutate({ date, venue });
   };
 
+  if (error) {
+    return <div className="container mx-auto p-6">Error loading sessions</div>;
+  }
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex justify-between items-center">
@@ -81,13 +87,13 @@ const Sessions = () => {
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
                 <div className="flex justify-center">
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={setDate}
                     initialFocus
+                    className="rounded-md border"
                   />
                 </div>
               </div>
@@ -116,9 +122,33 @@ const Sessions = () => {
       </div>
 
       <Card className="p-6">
-        <div className="text-center text-gray-500">
-          No sessions found. Start by creating a new session.
-        </div>
+        {isLoading ? (
+          <div className="text-center text-gray-500">Loading sessions...</div>
+        ) : sessions && sessions.length > 0 ? (
+          <div className="space-y-4">
+            {sessions.map((session) => (
+              <div 
+                key={session.id} 
+                className="flex justify-between items-center p-4 border rounded-lg"
+              >
+                <div>
+                  <p className="font-medium">{format(new Date(session.date), 'PPP')}</p>
+                  <p className="text-gray-500">{session.venue}</p>
+                </div>
+                <span className={cn(
+                  "px-3 py-1 rounded-full text-sm",
+                  session.status === 'Upcoming' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                )}>
+                  {session.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">
+            No sessions found. Start by creating a new session.
+          </div>
+        )}
       </Card>
     </div>
   );
