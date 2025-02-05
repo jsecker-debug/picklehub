@@ -88,8 +88,8 @@ export function AppSidebar() {
             <Menu className="h-6 w-6" />
           </button>
         </DrawerTrigger>
-        <DrawerContent className="h-[80vh]">
-          <div className="p-4">
+        <DrawerContent className="flex-auto p-4">
+          <div className="py-2">
             <AppSidebarContent />
           </div>
         </DrawerContent>
@@ -103,4 +103,3 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
-
