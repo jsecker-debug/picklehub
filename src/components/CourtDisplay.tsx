@@ -1,6 +1,5 @@
 
 import { Card } from "@/components/ui/card";
-import DownloadPdfButton from "./DownloadPdfButton";
 
 interface Court {
   team1: string[];
@@ -20,13 +19,6 @@ interface CourtDisplayProps {
 const CourtDisplay = ({ rotations, isKingCourt }: CourtDisplayProps) => {
   return (
     <div className="space-y-8">
-      <div className="flex justify-end mb-4">
-        <DownloadPdfButton 
-          contentId="court-rotations"
-          fileName={isKingCourt ? "king-of-court" : "first-half-schedule"}
-        />
-      </div>
-      
       <div id="court-rotations" className="bg-white">
         {rotations.map((rotation, idx) => (
           <Card key={idx} className="p-6 mb-6 bg-white">
