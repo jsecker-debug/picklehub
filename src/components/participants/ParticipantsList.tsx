@@ -113,19 +113,23 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
               >
                 <span className="truncate">{participant.name}</span>
                 <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    value={participant.level?.toString() || "0"}
-                    onChange={(e) => handleLevelChange(participant.id, e.target.value)}
-                    step="0.1"
-                    min="0"
-                    max="10"
-                    className="w-20"
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Level</span>
+                    <Input
+                      type="number"
+                      value={participant.level?.toString() || "0"}
+                      onChange={(e) => handleLevelChange(participant.id, e.target.value)}
+                      step="0.1"
+                      min="0"
+                      max="10"
+                      className="w-20"
+                    />
+                  </div>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => deleteParticipant.mutate(participant.id)}
+                    className="bg-red-600/80 hover:bg-red-600/90"
                   >
                     Remove
                   </Button>
@@ -143,3 +147,4 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
     </Card>
   );
 };
+
