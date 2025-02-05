@@ -12,6 +12,7 @@ import { PlusIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSessions } from "@/hooks/useSessions";
+import { Session } from "@/hooks/useSessions";
 
 const Sessions = () => {
   const [date, setDate] = useState<Date>();
@@ -22,7 +23,6 @@ const Sessions = () => {
 
   const addSession = useMutation({
     mutationFn: async ({ date, venue }: { date: Date; venue: string }) => {
-      console.log('Adding session:', { date, venue });
       const Status = date < new Date() ? 'Completed' : 'Upcoming';
       
       const { data, error } = await supabase
@@ -39,7 +39,6 @@ const Sessions = () => {
         throw error;
       }
       
-      console.log('Session added:', data);
       return data;
     },
     onSuccess: () => {
@@ -62,6 +61,61 @@ const Sessions = () => {
     }
     addSession.mutate({ date, venue });
   };
+
+  const getNextSession = (sessions: Session[]) => {
+    const now = new Date();
+    return sessions
+      .filter(session => new Date(session.Date) > now)
+      .sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime())[0];
+  };
+
+  const getUpcomingSessions = (sessions: Session[]) => {
+    const now = new Date();
+    const nextSession = getNextSession(sessions);
+    return sessions
+      .filter(session => 
+        new Date(session.Date) > now && 
+        (!nextSession || session.id !== nextSession.id)
+      )
+      .sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
+  };
+
+  const getCompletedSessions = (sessions: Session[]) => {
+    return sessions
+      .filter(session => new Date(session.Date) <= new Date())
+      .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
+  };
+
+  const SessionCard = ({ title, sessions }: { title: string; sessions: Session[] | undefined }) => (
+    <Card className="p-6 mb-6">
+      <h2 className="text-xl font-semibold mb-4">{title}</h2>
+      {sessions && sessions.length > 0 ? (
+        <div className="space-y-4">
+          {sessions.map((session) => (
+            <div 
+              key={session.id} 
+              className="flex justify-between items-center p-4 border rounded-lg"
+            >
+              <div>
+                <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
+                <p className="text-gray-500">{session.Venue}</p>
+              </div>
+              <span className={cn(
+                "px-3 py-1 rounded-full text-sm",
+                session.Status === 'Upcoming' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              )}>
+                {session.Status}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-gray-500">
+          No {title.toLowerCase()} sessions found.
+        </div>
+      )}
+    </Card>
+  );
 
   if (error) {
     return <div className="container mx-auto p-6">Error loading sessions</div>;
@@ -121,35 +175,24 @@ const Sessions = () => {
         </Dialog>
       </div>
 
-      <Card className="p-6">
-        {isLoading ? (
-          <div className="text-center text-gray-500">Loading sessions...</div>
-        ) : sessions && sessions.length > 0 ? (
-          <div className="space-y-4">
-            {sessions.map((session) => (
-              <div 
-                key={session.id} 
-                className="flex justify-between items-center p-4 border rounded-lg"
-              >
-                <div>
-                  <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
-                  <p className="text-gray-500">{session.Venue}</p>
-                </div>
-                <span className={cn(
-                  "px-3 py-1 rounded-full text-sm",
-                  session.Status === 'Upcoming' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                )}>
-                  {session.Status}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-gray-500">
-            No sessions found. Start by creating a new session.
-          </div>
-        )}
-      </Card>
+      {isLoading ? (
+        <div className="text-center text-gray-500">Loading sessions...</div>
+      ) : sessions ? (
+        <>
+          <SessionCard 
+            title="Next Session" 
+            sessions={getNextSession(sessions) ? [getNextSession(sessions)!] : []} 
+          />
+          <SessionCard 
+            title="Upcoming Sessions" 
+            sessions={getUpcomingSessions(sessions)} 
+          />
+          <SessionCard 
+            title="Completed Sessions" 
+            sessions={getCompletedSessions(sessions)} 
+          />
+        </>
+      ) : null}
     </div>
   );
 };
