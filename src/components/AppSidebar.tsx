@@ -82,13 +82,13 @@ export function AppSidebar() {
 
   if (isMobile) {
     return (
-      <Drawer>
+      <Drawer direction="top">
         <DrawerTrigger asChild>
           <button className="fixed top-4 left-4 p-2 bg-white rounded-lg shadow-sm">
             <Menu className="h-6 w-6" />
           </button>
         </DrawerTrigger>
-        <DrawerContent>
+        <DrawerContent side="top" className="h-[80vh]">
           <div className="p-4">
             <AppSidebarContent />
           </div>
