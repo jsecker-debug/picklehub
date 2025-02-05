@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,14 +11,19 @@ import { PlusIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSessions } from "@/hooks/useSessions";
+import { useSessionSchedule } from "@/hooks/useSessionSchedule";
 import { Session } from "@/hooks/useSessions";
+import CourtDisplay from "@/components/CourtDisplay";
 
 const Sessions = () => {
   const [date, setDate] = useState<Date>();
   const [venue, setVenue] = useState<string>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  
   const { data: sessions, isLoading, error } = useSessions();
+  const { data: scheduleData, isLoading: isLoadingSchedule } = useSessionSchedule(selectedSessionId);
 
   const addSession = useMutation({
     mutationFn: async ({ date, venue }: { date: Date; venue: string }) => {
@@ -94,7 +98,8 @@ const Sessions = () => {
           {sessions.map((session) => (
             <div 
               key={session.id} 
-              className="flex justify-between items-center p-4 border rounded-lg"
+              className="flex justify-between items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+              onClick={() => setSelectedSessionId(session.id)}
             >
               <div>
                 <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
@@ -191,6 +196,38 @@ const Sessions = () => {
             title="Completed Sessions" 
             sessions={getCompletedSessions(sessions)} 
           />
+
+          {selectedSessionId && (
+            <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Session Schedule</DialogTitle>
+                </DialogHeader>
+                {isLoadingSchedule ? (
+                  <div className="text-center py-4">Loading schedule...</div>
+                ) : scheduleData ? (
+                  <div className="space-y-6">
+                    {scheduleData.randomRotations.length > 0 && (
+                      <CourtDisplay 
+                        rotations={scheduleData.randomRotations} 
+                        isKingCourt={false} 
+                      />
+                    )}
+                    {scheduleData.kingCourtRotation && (
+                      <CourtDisplay 
+                        rotations={[scheduleData.kingCourtRotation]} 
+                        isKingCourt={true} 
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    No schedule found for this session.
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          )}
         </>
       ) : null}
     </div>
