@@ -106,23 +106,23 @@ export const ParticipantsList = () => {
             <div>Level</div>
             <div></div>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {participants?.map((participant) => (
               <div
                 key={participant.id}
-                className="grid grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border"
+                className="flex items-center justify-between p-3 bg-white rounded-lg border"
               >
-                <span>{participant.name}</span>
-                <Input
-                  type="number"
-                  value={participant.level?.toString() || "0"}
-                  onChange={(e) => handleLevelChange(participant.id, e.target.value)}
-                  step="0.1"
-                  min="0"
-                  max="10"
-                  className="w-24"
-                />
-                <div className="flex justify-end">
+                <span className="truncate">{participant.name}</span>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={participant.level?.toString() || "0"}
+                    onChange={(e) => handleLevelChange(participant.id, e.target.value)}
+                    step="0.1"
+                    min="0"
+                    max="10"
+                    className="w-20"
+                  />
                   <Button
                     variant="destructive"
                     size="sm"
@@ -133,12 +133,12 @@ export const ParticipantsList = () => {
                 </div>
               </div>
             ))}
-            {participants?.length === 0 && (
-              <p className="text-center text-gray-500">
-                No participants added yet
-              </p>
-            )}
           </div>
+          {participants?.length === 0 && (
+            <p className="text-center text-gray-500">
+              No participants added yet
+            </p>
+          )}
         </div>
       )}
     </Card>
