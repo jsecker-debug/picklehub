@@ -7,6 +7,7 @@ export interface Session {
   created_at: string;
   Date: string;
   venue: string;
+  Status: 'Upcoming' | 'Completed';
 }
 
 export const useSessions = () => {

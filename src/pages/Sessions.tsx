@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,12 +22,14 @@ const Sessions = () => {
   const addSession = useMutation({
     mutationFn: async ({ date, venue }: { date: Date; venue: string }) => {
       console.log('Adding session:', { date, venue });
+      const Status = date < new Date() ? 'Completed' : 'Upcoming';
       
       const { data, error } = await supabase
         .from("sessions")
         .insert([{ 
           Date: date.toISOString(),
           venue,
+          Status
         }])
         .select();
       
@@ -133,6 +134,12 @@ const Sessions = () => {
                   <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
                   <p className="text-gray-500">{session.venue}</p>
                 </div>
+                <span className={cn(
+                  "px-3 py-1 rounded-full text-sm",
+                  session.Status === 'Upcoming' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                )}>
+                  {session.Status}
+                </span>
               </div>
             ))}
           </div>
