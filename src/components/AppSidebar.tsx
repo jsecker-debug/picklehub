@@ -28,7 +28,7 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
     const loadFont = async () => {
       const font = new FontFace(
         'Catfiles',
-        'url(https://fontesk.com/download/catfiles-font/)'
+        'url(https://db.onlinewebfonts.com/t/5c583541777610014aadeaa72bb89dcc.woff2)'
       );
 
       try {
