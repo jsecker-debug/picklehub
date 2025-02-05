@@ -29,7 +29,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="w-64 p-2 bg-[#f9fafb]">
+    <Sidebar className="w-64 p-2 bg-[#f9fafb] border-none">
       <SidebarContent isMobile={false} />
     </Sidebar>
   );
