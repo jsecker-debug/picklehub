@@ -4,13 +4,6 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 interface Participant {
   id: string;
@@ -65,29 +58,6 @@ export const ParticipantsList = () => {
     },
   });
 
-  const updateLevel = useMutation({
-    mutationFn: async ({ id, level }: { id: string; level: number }) => {
-      console.log('Updating participant level:', { id, level });
-      const { error } = await supabase
-        .from("participants")
-        .update({ level })
-        .eq("id", id);
-      
-      if (error) {
-        console.error('Error updating participant level:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["participants"] });
-      toast.success("Level updated successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to update level");
-      console.error("Error updating level:", error);
-    },
-  });
-
   if (error) {
     return <div className="text-center text-red-500">Error loading participants</div>;
   }
@@ -109,26 +79,9 @@ export const ParticipantsList = () => {
               className="grid grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border"
             >
               <span>{participant.name}</span>
-              <Select
-                defaultValue={participant.level?.toString() || "0"}
-                onValueChange={(value) => {
-                  updateLevel.mutate({
-                    id: participant.id,
-                    level: parseInt(value),
-                  });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[0, 1, 2, 3, 4, 5].map((level) => (
-                    <SelectItem key={level} value={level.toString()}>
-                      {level === 0 ? "Unrated" : `Level ${level}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <span className="text-gray-600">
+                {participant.level ? participant.level.toFixed(2) : '0.00'}
+              </span>
               <div className="flex justify-end">
                 <Button
                   variant="destructive"
