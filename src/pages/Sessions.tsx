@@ -65,7 +65,6 @@ const Sessions = () => {
 
   const handleDateSelect = (newDate: Date | undefined) => {
     setDate(newDate);
-    setIsCalendarOpen(false); // Only close the calendar popover, not the main dialog
   };
 
   return (
