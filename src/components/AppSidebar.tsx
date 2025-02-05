@@ -1,4 +1,3 @@
-
 import { Users, Calendar, Menu, X, Clock } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -61,7 +60,7 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
           </DrawerClose>
         )}
       </div>
-      <div className="bg-white rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]">
+      <div className="bg-white rounded-lg">
         <SidebarContent className="px-1 py-1">
           <SidebarGroup>
             <SidebarGroupContent className="space-y-0.5">
