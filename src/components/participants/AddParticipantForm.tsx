@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useParticipants } from "@/hooks/useParticipants";
 
 export const AddParticipantForm = () => {
   const [newParticipant, setNewParticipant] = useState("");
   const queryClient = useQueryClient();
+  const { data: participants } = useParticipants();
 
   const addParticipant = useMutation({
     mutationFn: async (name: string) => {
@@ -47,16 +49,21 @@ export const AddParticipantForm = () => {
 
   return (
     <Card className="p-6 mb-6">
-      <form onSubmit={handleSubmit} className="flex gap-4">
-        <Input
-          value={newParticipant}
-          onChange={(e) => setNewParticipant(e.target.value)}
-          placeholder="Enter participant name"
-          className="flex-1"
-        />
-        <Button type="submit" disabled={!newParticipant.trim()}>
-          Add Participant
-        </Button>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex gap-4">
+          <Input
+            value={newParticipant}
+            onChange={(e) => setNewParticipant(e.target.value)}
+            placeholder="Enter participant name"
+            className="flex-1"
+          />
+          <Button type="submit" disabled={!newParticipant.trim()}>
+            Add Participant
+          </Button>
+        </div>
+        <p className="text-sm text-gray-500">
+          Total Participants: {participants?.length || 0}
+        </p>
       </form>
     </Card>
   );
