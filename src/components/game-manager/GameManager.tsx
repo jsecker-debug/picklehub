@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import TemporaryPlayersInput from "@/components/scheduler/TemporaryPlayersInput"
 import GenerateButtons from "@/components/scheduler/GenerateButtons";
 import { useParticipants } from "@/hooks/useParticipants";
 import { parsePlayers, shuffle } from "@/utils/gameUtils";
-import type { Rotation } from "@/types/scheduler";
+import type { Rotation, Court } from "@/types/scheduler";
 
 const GameManager = () => {
   const [temporaryPlayers, setTemporaryPlayers] = useState("");
