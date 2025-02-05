@@ -6,7 +6,7 @@ export interface Session {
   id: string;
   created_at: string;
   Date: string;
-  venue: string;
+  Venue: string;
   Status: 'Upcoming' | 'Completed';
 }
 

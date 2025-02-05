@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ const Sessions = () => {
         .from("sessions")
         .insert([{ 
           Date: date.toISOString(),
-          venue,
+          Venue: venue,
           Status
         }])
         .select();
@@ -132,7 +133,7 @@ const Sessions = () => {
               >
                 <div>
                   <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
-                  <p className="text-gray-500">{session.venue}</p>
+                  <p className="text-gray-500">{session.Venue}</p>
                 </div>
                 <span className={cn(
                   "px-3 py-1 rounded-full text-sm",
