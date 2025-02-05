@@ -15,6 +15,11 @@ const Participants = () => {
     setSearchQuery(searchInput);
   };
 
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
+  };
+
   return (
     <div className="h-full bg-gray-50">
       <div className="max-w-full mx-auto px-8">
@@ -26,7 +31,7 @@ const Participants = () => {
 
         <div className="flex gap-4 mb-6">
           <div className="flex-1">
-            <Card className="p-6 mb-6">
+            <Card className="p-6">
               <form onSubmit={handleSearch} className="space-y-4">
                 <div className="flex gap-4">
                   <Input
@@ -37,6 +42,13 @@ const Participants = () => {
                   />
                   <Button type="submit">
                     Search
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    onClick={handleClearSearch}
+                  >
+                    Clear
                   </Button>
                 </div>
               </form>
