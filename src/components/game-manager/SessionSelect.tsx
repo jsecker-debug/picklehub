@@ -1,4 +1,3 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Session } from "@/types/scheduler";
 
@@ -9,8 +8,8 @@ interface SessionSelectProps {
 }
 
 const SessionSelect = ({ sessions, selectedSession, setSelectedSession }: SessionSelectProps) => {
-  const upcomingSessions = sessions?.filter(session => 
-    new Date(session.Date) > new Date()
+  const availableSessions = sessions?.filter(session => 
+    new Date(session.Date) > new Date() && session.Status !== 'Ready'
   ) || [];
 
   return (
@@ -24,7 +23,7 @@ const SessionSelect = ({ sessions, selectedSession, setSelectedSession }: Sessio
           <SelectValue placeholder="Select a session" />
         </SelectTrigger>
         <SelectContent>
-          {upcomingSessions.map((session) => (
+          {availableSessions.map((session) => (
             <SelectItem key={session.id} value={session.id}>
               {new Date(session.Date).toLocaleDateString()} - {session.Venue}
             </SelectItem>
@@ -36,4 +35,3 @@ const SessionSelect = ({ sessions, selectedSession, setSelectedSession }: Sessio
 };
 
 export default SessionSelect;
-

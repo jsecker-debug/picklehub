@@ -1,19 +1,21 @@
-
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Rotation } from "@/types/scheduler";
 
 export const useGameSchedule = (selectedSession: string) => {
   const [rotations, setRotations] = useState<Rotation[]>([]);
   const [kingCourtRotation, setKingCourtRotation] = useState<Rotation | null>(null);
+  const queryClient = useQueryClient();
 
   const saveScheduleMutation = useMutation({
     mutationFn: async () => {
       if (!selectedSession) {
         throw new Error("Please select a session");
       }
+
+      console.log('Starting schedule save for session:', selectedSession);
 
       // Save random schedule rotations
       for (let i = 0; i < rotations.length; i++) {
@@ -99,8 +101,19 @@ export const useGameSchedule = (selectedSession: string) => {
           if (kingRestersError) throw kingRestersError;
         }
       }
+
+      // Update session status to Ready
+      const { error: sessionUpdateError } = await supabase
+        .from('sessions')
+        .update({ Status: 'Ready' })
+        .eq('id', selectedSession);
+
+      if (sessionUpdateError) throw sessionUpdateError;
+
+      console.log('Schedule saved successfully and session marked as Ready');
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sessions"] });
       toast.success("Schedule saved to session successfully");
     },
     onError: (error) => {
@@ -117,4 +130,3 @@ export const useGameSchedule = (selectedSession: string) => {
     saveScheduleMutation
   };
 };
-
