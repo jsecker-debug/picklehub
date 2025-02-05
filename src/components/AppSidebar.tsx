@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-const SidebarContent = () => {
+const AppSidebarContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -90,7 +90,7 @@ export function AppSidebar() {
         </DrawerTrigger>
         <DrawerContent>
           <div className="p-4">
-            <SidebarContent />
+            <AppSidebarContent />
           </div>
         </DrawerContent>
       </Drawer>
@@ -99,7 +99,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="w-64 p-2 bg-[#f9fafb]">
-      <SidebarContent />
+      <AppSidebarContent />
     </Sidebar>
   );
 }
