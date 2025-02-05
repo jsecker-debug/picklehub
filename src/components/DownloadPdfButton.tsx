@@ -20,8 +20,10 @@ const DownloadPdfButton = ({ contentId, fileName }: DownloadPdfButtonProps) => {
 
     try {
       toast.info("Generating PDF...");
-      const canvas = await html2canvas(element);
-      const imgData = canvas.toDataURL("image/png");
+      const canvas = await html2canvas(element, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+      });
       
       // Calculate dimensions
       const imgWidth = 210; // A4 width in mm
@@ -29,19 +31,50 @@ const DownloadPdfButton = ({ contentId, fileName }: DownloadPdfButtonProps) => {
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       const pdf = new jsPDF("p", "mm", "a4");
-      let heightLeft = imgHeight;
-      let position = 0;
       
-      // Add image to first page
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Calculate the number of pages needed
+      const pagesNeeded = Math.ceil(imgHeight / pageHeight);
       
-      // Add new pages if content overflows
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // For each page
+      for (let page = 0; page < pagesNeeded; page++) {
+        // Only add new page if it's not the first page
+        if (page > 0) {
+          pdf.addPage();
+        }
+        
+        // Calculate what portion of the image to use for this page
+        const sourceY = page * canvas.height / pagesNeeded;
+        const sourceHeight = canvas.height / pagesNeeded;
+        
+        // Create a new canvas for this portion
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceHeight;
+        
+        const context = pageCanvas.getContext('2d');
+        if (context) {
+          context.fillStyle = '#ffffff';
+          context.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+          context.drawImage(
+            canvas,
+            0,
+            sourceY,
+            canvas.width,
+            sourceHeight,
+            0,
+            0,
+            pageCanvas.width,
+            pageCanvas.height
+          );
+        }
+        
+        // Add this portion to the PDF
+        const imgData = pageCanvas.toDataURL('image/png');
+        if (page === 0) {
+          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, pageHeight);
+        } else {
+          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, pageHeight);
+        }
       }
       
       pdf.save(`${fileName}.pdf`);

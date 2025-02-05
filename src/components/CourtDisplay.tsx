@@ -27,16 +27,16 @@ const CourtDisplay = ({ rotations, isKingCourt }: CourtDisplayProps) => {
         />
       </div>
       
-      <div id="court-rotations">
+      <div id="court-rotations" className="bg-white">
         {rotations.map((rotation, idx) => (
-          <Card key={idx} className="p-6 mb-6">
+          <Card key={idx} className="p-6 mb-6 bg-white">
             <h2 className="text-xl font-semibold mb-4 text-primary">
               {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
             </h2>
             
             <div className="grid gap-6 md:grid-cols-2">
               {rotation.courts.map((court, courtIdx) => (
-                <Card key={courtIdx} className="p-4 border-2 border-accent/20">
+                <Card key={courtIdx} className="p-4 border-2 border-accent/20 bg-white">
                   <h3 className="text-lg font-medium mb-3 text-primary">
                     Court {courtIdx + 1}
                   </h3>
