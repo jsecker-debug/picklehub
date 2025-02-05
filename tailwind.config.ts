@@ -20,7 +20,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        catfiles: ['Catfiles', 'sans-serif'],
+        anybody: ['Anybody', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -4,10 +4,11 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Catfiles';
-  src: url('/Catfiles.otf') format('opentype');
-  font-weight: normal;
+  font-family: 'Anybody';
+  src: url('/Anybody-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
+  font-display: swap;
 }
 
 @layer base {

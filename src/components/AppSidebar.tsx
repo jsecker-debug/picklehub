@@ -53,7 +53,7 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
             alt="PickleHub Logo"
             className="h-8 w-8 mr-2 rounded-full object-cover"
           />
-          <span className="text-xl font-bold font-catfiles">PickleHub</span>
+          <span className="text-xl font-bold font-anybody">PickleHub</span>
         </div>
         {isMobile && (
           <DrawerClose className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
