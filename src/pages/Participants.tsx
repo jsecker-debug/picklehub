@@ -2,10 +2,18 @@
 import { AddParticipantForm } from "@/components/participants/AddParticipantForm";
 import { ParticipantsList } from "@/components/participants/ParticipantsList";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 
 const Participants = () => {
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
+  };
 
   return (
     <div className="h-full bg-gray-50">
@@ -17,12 +25,23 @@ const Participants = () => {
         </div>
 
         <div className="flex gap-4 mb-6">
-          <Input
-            placeholder="Search participants..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-          />
+          <div className="flex-1">
+            <Card className="p-6 mb-6">
+              <form onSubmit={handleSearch} className="space-y-4">
+                <div className="flex gap-4">
+                  <Input
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Search participants..."
+                    className="flex-1"
+                  />
+                  <Button type="submit">
+                    Search
+                  </Button>
+                </div>
+              </form>
+            </Card>
+          </div>
           <div className="flex-1">
             <AddParticipantForm />
           </div>
