@@ -40,7 +40,7 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
 
   return (
     <>
-      <div className="flex items-center justify-between h-16 px-2 mb-2 bg-[#f9fafb] shadow-sm rounded-lg">
+      <div className="flex items-center justify-between h-16 px-2 mb-2 bg-[#f9fafb] shadow-[0_2px_4px_0px_rgba(0,0,0,0.1)] rounded-lg">
         <div className="flex items-center">
           <img 
             src="/lovable-uploads/0ff7ce02-62e2-4665-b101-44281d8d042c.png"
@@ -55,7 +55,7 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
           </DrawerClose>
         )}
       </div>
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-lg shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]">
         <SidebarContent className="px-1 py-1">
           <SidebarGroup>
             <SidebarGroupContent className="space-y-0.5">
