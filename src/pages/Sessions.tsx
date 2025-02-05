@@ -129,7 +129,7 @@ const Sessions = () => {
 
   return (
     <div className="h-full bg-gray-50">
-      <div className="max-w-full mx-auto py-20 px-6 md:px-12 lg:px-24">
+      <div className="max-w-full mx-auto py-20 px-6">
         <div className="mb-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-primary font-anybody">Sessions</h1>
