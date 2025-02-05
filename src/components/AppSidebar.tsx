@@ -29,12 +29,14 @@ export function AppSidebar() {
   ];
 
   return (
-    <Sidebar>
+    <Sidebar defaultCollapsed={false}>
       <div className="flex items-center justify-between h-16 px-4 border-b">
-        <span className="text-xl font-bold truncate">PickleHub</span>
-        <SidebarTrigger>
-          <Menu className="h-4 w-4" />
-        </SidebarTrigger>
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-bold truncate">PickleHub</span>
+          <SidebarTrigger className="hover:bg-accent p-1 rounded-md">
+            <Menu className="h-4 w-4" />
+          </SidebarTrigger>
+        </div>
       </div>
       <SidebarContent>
         <SidebarGroup>
