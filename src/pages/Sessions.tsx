@@ -17,6 +17,7 @@ const Sessions = () => {
   const [date, setDate] = useState<Date>();
   const [venue, setVenue] = useState<string>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const addSession = useMutation({
@@ -62,6 +63,11 @@ const Sessions = () => {
     addSession.mutate({ date, venue });
   };
 
+  const handleDateSelect = (newDate: Date | undefined) => {
+    setDate(newDate);
+    setIsCalendarOpen(false); // Only close the calendar popover, not the main dialog
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex justify-between items-center">
@@ -83,7 +89,7 @@ const Sessions = () => {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <Popover>
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -100,7 +106,7 @@ const Sessions = () => {
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={setDate}
+                      onSelect={handleDateSelect}
                       initialFocus
                     />
                   </PopoverContent>
