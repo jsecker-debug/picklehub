@@ -5,9 +5,8 @@ import { supabase } from "@/lib/supabase";
 export interface Session {
   id: string;
   created_at: string;
-  Date: string;  // Changed from 'date' to 'Date'
+  Date: string;
   venue: string;
-  status: 'Upcoming' | 'Completed';
 }
 
 export const useSessions = () => {
@@ -17,7 +16,7 @@ export const useSessions = () => {
       const { data, error } = await supabase
         .from("sessions")
         .select("*")
-        .order('Date', { ascending: true });  // Changed from 'date' to 'Date'
+        .order('Date', { ascending: true });
       
       if (error) {
         console.error("Error fetching sessions:", error);
