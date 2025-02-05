@@ -18,10 +18,30 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const loadFont = async () => {
+      const font = new FontFace(
+        'Catfiles',
+        'url(https://fontesk.com/download/catfiles-font/)'
+      );
+
+      try {
+        await font.load();
+        document.fonts.add(font);
+        console.log('Catfiles font loaded successfully');
+      } catch (error) {
+        console.error('Error loading Catfiles font:', error);
+      }
+    };
+
+    loadFont();
+  }, []);
 
   const items = [
     {
@@ -53,7 +73,7 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
             alt="PickleHub Logo"
             className="h-8 w-8 mr-2 rounded-full object-cover"
           />
-          <span className="text-xl font-bold">PickleHub</span>
+          <span className="text-xl font-bold font-catfiles">PickleHub</span>
         </div>
         {isMobile && (
           <DrawerClose className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
