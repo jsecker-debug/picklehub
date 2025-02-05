@@ -7,9 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, PlusIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -17,7 +16,6 @@ const Sessions = () => {
   const [date, setDate] = useState<Date>();
   const [venue, setVenue] = useState<string>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const addSession = useMutation({
@@ -63,10 +61,6 @@ const Sessions = () => {
     addSession.mutate({ date, venue });
   };
 
-  const handleDateSelect = (newDate: Date | undefined) => {
-    setDate(newDate);
-  };
-
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex justify-between items-center">
@@ -88,28 +82,20 @@ const Sessions = () => {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={handleDateSelect}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="border rounded-md p-2">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="mx-auto"
+                    initialFocus
+                  />
+                </div>
+                {date && (
+                  <p className="text-sm text-muted-foreground">
+                    Selected: {format(date, "PPP")}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Venue</label>
@@ -145,4 +131,3 @@ const Sessions = () => {
 };
 
 export default Sessions;
-
