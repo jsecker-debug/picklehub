@@ -203,12 +203,12 @@ const Sessions = () => {
             <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
               <DialogContent className="max-w-4xl max-h-[calc(100vh-24px)] my-12 overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Session Schedule</DialogTitle>
+                  <DialogTitle className="text-3xl font-bold text-primary">Session Schedule</DialogTitle>
                 </DialogHeader>
                 {isLoadingSchedule ? (
                   <div className="text-center py-4">Loading schedule...</div>
                 ) : scheduleData ? (
-                  <div className="space-y-6">
+                  <div className="space-y-6 pt-4">
                     <DownloadPdfButton 
                       contentId="session-schedule"
                       fileName="session-schedule"
