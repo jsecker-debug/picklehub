@@ -12,5 +12,12 @@ export interface Rotation {
 export interface Participant {
   id: string;
   name: string;
-  level?: number; // Making it optional since existing records won't have it
+  level?: number;
 }
+
+export interface Session {
+  id: string;
+  Date: string;
+  Venue: string;
+}
+
