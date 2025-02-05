@@ -1,11 +1,12 @@
 
-import { Users, Calendar, Menu } from "lucide-react";
+import { Users, Calendar, Menu, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Drawer,
   DrawerContent,
   DrawerTrigger,
+  DrawerClose,
 } from "@/components/ui/drawer";
 import {
   Sidebar,
@@ -89,7 +90,12 @@ export function AppSidebar() {
           </button>
         </DrawerTrigger>
         <DrawerContent className="flex-auto p-4">
-          <AppSidebarContent />
+          <div className="relative">
+            <DrawerClose className="absolute top-0 right-0 p-2">
+              <X className="h-6 w-6" />
+            </DrawerClose>
+            <AppSidebarContent />
+          </div>
         </DrawerContent>
       </Drawer>
     );
