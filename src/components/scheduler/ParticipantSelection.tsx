@@ -14,7 +14,7 @@ const ParticipantSelection = ({
   onParticipantToggle,
 }: ParticipantSelectionProps) => {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="flex flex-col space-y-2">
       {participants?.map((participant) => (
         <div key={participant.id} className="flex items-center space-x-2">
           <Checkbox
@@ -37,3 +37,4 @@ const ParticipantSelection = ({
 };
 
 export default ParticipantSelection;
+
