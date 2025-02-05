@@ -6,7 +6,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -32,12 +31,16 @@ export function AppSidebar() {
   return (
     <>
       <Sidebar>
-        <div className="flex items-center h-16 px-4 border-b">
+        <div className="flex items-center justify-between h-16 px-4 border-b">
           <span className="text-xl font-bold">PickleHub</span>
+          <SidebarTrigger>
+            <button className="p-2 hover:bg-accent rounded-md">
+              <Menu className="h-4 w-4" />
+            </button>
+          </SidebarTrigger>
         </div>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item) => (
@@ -53,11 +56,6 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
       </Sidebar>
-      <SidebarTrigger>
-        <button className="fixed left-4 top-4 z-40 lg:hidden p-2 hover:bg-accent rounded-md">
-          <Menu className="h-6 w-6" />
-        </button>
-      </SidebarTrigger>
     </>
   );
 }
