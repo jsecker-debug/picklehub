@@ -89,9 +89,7 @@ export function AppSidebar() {
           </button>
         </DrawerTrigger>
         <DrawerContent className="flex-auto p-4">
-          <div className="py-2">
-            <AppSidebarContent />
-          </div>
+          <AppSidebarContent />
         </DrawerContent>
       </Drawer>
     );
