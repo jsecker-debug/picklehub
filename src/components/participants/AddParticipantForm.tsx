@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -49,14 +48,18 @@ export const AddParticipantForm = () => {
   return (
     <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 w-full">
           <Input
             value={newParticipant}
             onChange={(e) => setNewParticipant(e.target.value)}
             placeholder="Enter participant name"
-            className="flex-1"
+            className="w-full"
           />
-          <Button type="submit" disabled={!newParticipant.trim()}>
+          <Button 
+            type="submit" 
+            disabled={!newParticipant.trim()}
+            className="w-full"
+          >
             Add Participant
           </Button>
         </div>
