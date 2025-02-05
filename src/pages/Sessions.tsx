@@ -15,6 +15,7 @@ import { useSessions } from "@/hooks/useSessions";
 import { useSessionSchedule } from "@/hooks/useSessionSchedule";
 import { Session } from "@/hooks/useSessions";
 import CourtDisplay from "@/components/CourtDisplay";
+import DownloadPdfButton from "@/components/DownloadPdfButton";
 
 const Sessions = () => {
   const [date, setDate] = useState<Date>();
@@ -208,18 +209,26 @@ const Sessions = () => {
                   <div className="text-center py-4">Loading schedule...</div>
                 ) : scheduleData ? (
                   <div className="space-y-6">
-                    {scheduleData.randomRotations.length > 0 && (
-                      <CourtDisplay 
-                        rotations={scheduleData.randomRotations} 
-                        isKingCourt={false} 
+                    <div className="flex justify-end mb-4">
+                      <DownloadPdfButton 
+                        contentId="session-schedule"
+                        fileName="session-schedule"
                       />
-                    )}
-                    {scheduleData.kingCourtRotation && (
-                      <CourtDisplay 
-                        rotations={[scheduleData.kingCourtRotation]} 
-                        isKingCourt={true} 
-                      />
-                    )}
+                    </div>
+                    <div id="session-schedule">
+                      {scheduleData.randomRotations.length > 0 && (
+                        <CourtDisplay 
+                          rotations={scheduleData.randomRotations} 
+                          isKingCourt={false} 
+                        />
+                      )}
+                      {scheduleData.kingCourtRotation && (
+                        <CourtDisplay 
+                          rotations={[scheduleData.kingCourtRotation]} 
+                          isKingCourt={true} 
+                        />
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-4 text-gray-500">
@@ -236,4 +245,3 @@ const Sessions = () => {
 };
 
 export default Sessions;
-
