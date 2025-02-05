@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import Index from "./pages/Index";
 import Participants from "./pages/Participants";
+import Sessions from "./pages/Sessions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/participants" element={<Participants />} />
+                <Route path="/sessions" element={<Sessions />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

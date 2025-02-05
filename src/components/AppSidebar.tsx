@@ -1,5 +1,5 @@
 
-import { Users, Calendar, Menu, X } from "lucide-react";
+import { Users, Calendar, Menu, X, Clock } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -35,6 +35,12 @@ const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
       icon: Users,
       path: "/participants",
       onClick: () => navigate("/participants"),
+    },
+    {
+      title: "Sessions",
+      icon: Clock,
+      path: "/sessions",
+      onClick: () => navigate("/sessions"),
     },
   ];
 
