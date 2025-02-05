@@ -128,127 +128,129 @@ const Sessions = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Sessions</h1>
-          <p className="text-gray-600 mt-2">Manage your pickleball sessions</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add Session
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Session</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <div className="flex justify-center">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                    className="rounded-md border"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Venue</label>
-                <Select onValueChange={setVenue} value={venue}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select venue" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Eton">Eton</SelectItem>
-                    <SelectItem value="Windsor">Windsor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button 
-                className="w-full" 
-                onClick={handleSubmit}
-                disabled={!date || !venue}
-              >
-                Create Session
+    <div className="h-full bg-gray-50">
+      <div className="max-w-full mx-auto py-20 px-6 md:px-12 lg:px-24">
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-anybody">Sessions</h1>
+            <p className="text-gray-600 mt-2">Manage your pickleball sessions</p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Add Session
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Session</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <div className="flex justify-center">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      className="rounded-md border"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Venue</label>
+                  <Select onValueChange={setVenue} value={venue}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select venue" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Eton">Eton</SelectItem>
+                      <SelectItem value="Windsor">Windsor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handleSubmit}
+                  disabled={!date || !venue}
+                >
+                  Create Session
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
 
-      {isLoading ? (
-        <div className="text-center text-gray-500">Loading sessions...</div>
-      ) : sessions ? (
-        <>
-          <SessionCard 
-            title="Next Session" 
-            sessions={getNextSession(sessions) ? [getNextSession(sessions)!] : []} 
-          />
-          <SessionCard 
-            title="Upcoming Sessions" 
-            sessions={getUpcomingSessions(sessions)} 
-          />
-          <SessionCard 
-            title="Completed Sessions" 
-            sessions={getCompletedSessions(sessions)} 
-          />
+        {isLoading ? (
+          <div className="text-center text-gray-500">Loading sessions...</div>
+        ) : sessions ? (
+          <>
+            <SessionCard 
+              title="Next Session" 
+              sessions={getNextSession(sessions) ? [getNextSession(sessions)!] : []} 
+            />
+            <SessionCard 
+              title="Upcoming Sessions" 
+              sessions={getUpcomingSessions(sessions)} 
+            />
+            <SessionCard 
+              title="Completed Sessions" 
+              sessions={getCompletedSessions(sessions)} 
+            />
 
-          {selectedSessionId && (
-            <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
-              <DialogContent className="max-w-4xl max-h-[calc(100vh-24px)] my-12 overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-3xl font-bold text-primary">Session Schedule</DialogTitle>
-                </DialogHeader>
-                {isLoadingSchedule ? (
-                  <div className="text-center py-4">Loading schedule...</div>
-                ) : scheduleData ? (
-                  <div className="space-y-6 pt-4">
-                    {(scheduleData.randomRotations.length > 0 || scheduleData.kingCourtRotation) ? (
-                      <>
-                        <DownloadPdfButton 
-                          contentId="session-schedule"
-                          fileName="session-schedule"
-                          className="w-full p-6 text-lg flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
-                        >
-                          <Download className="w-6 h-6" />
-                          Download Session Schedule
-                        </DownloadPdfButton>
-                        <div id="session-schedule">
-                          {scheduleData.randomRotations.length > 0 && (
-                            <CourtDisplay 
-                              rotations={scheduleData.randomRotations} 
-                              isKingCourt={false} 
-                            />
-                          )}
-                          {scheduleData.kingCourtRotation && (
-                            <CourtDisplay 
-                              rotations={[scheduleData.kingCourtRotation]} 
-                              isKingCourt={true} 
-                            />
-                          )}
+            {selectedSessionId && (
+              <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
+                <DialogContent className="max-w-4xl max-h-[calc(100vh-24px)] my-12 overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-3xl font-bold text-primary">Session Schedule</DialogTitle>
+                  </DialogHeader>
+                  {isLoadingSchedule ? (
+                    <div className="text-center py-4">Loading schedule...</div>
+                  ) : scheduleData ? (
+                    <div className="space-y-6 pt-4">
+                      {(scheduleData.randomRotations.length > 0 || scheduleData.kingCourtRotation) ? (
+                        <>
+                          <DownloadPdfButton 
+                            contentId="session-schedule"
+                            fileName="session-schedule"
+                            className="w-full p-6 text-lg flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
+                          >
+                            <Download className="w-6 h-6" />
+                            Download Session Schedule
+                          </DownloadPdfButton>
+                          <div id="session-schedule">
+                            {scheduleData.randomRotations.length > 0 && (
+                              <CourtDisplay 
+                                rotations={scheduleData.randomRotations} 
+                                isKingCourt={false} 
+                              />
+                            )}
+                            {scheduleData.kingCourtRotation && (
+                              <CourtDisplay 
+                                rotations={[scheduleData.kingCourtRotation]} 
+                                isKingCourt={true} 
+                              />
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          No Session Generated
                         </div>
-                      </>
-                    ) : (
-                      <div className="text-center py-4 text-gray-500">
-                        No Session Generated
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    No schedule found for this session.
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
-          )}
-        </>
-      ) : null}
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      No schedule found for this session.
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
+          </>
+        ) : null}
+      </div>
     </div>
   );
 };
