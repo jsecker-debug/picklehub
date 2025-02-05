@@ -30,6 +30,11 @@ export function AppSidebar() {
   return (
     <Sidebar className="w-64 border-r">
       <div className="flex items-center h-16 px-4 border-b">
+        <img 
+          src="/lovable-uploads/0ff7ce02-62e2-4665-b101-44281d8d042c.png"
+          alt="PickleHub Logo"
+          className="h-8 w-8 mr-2"
+        />
         <span className="text-xl font-bold">PickleHub</span>
       </div>
       <SidebarContent>
