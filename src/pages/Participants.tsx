@@ -29,32 +29,35 @@ const Participants = () => {
           <p className="text-gray-600 mt-2">Manage your participants</p>
         </div>
 
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="w-full md:flex-1">
             <Card className="p-6">
               <form onSubmit={handleSearch} className="space-y-4">
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Input
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     placeholder="Search participants..."
                     className="flex-1"
                   />
-                  <Button type="submit">
-                    Search
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    onClick={handleClearSearch}
-                  >
-                    Clear
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button type="submit" className="flex-1 sm:flex-none">
+                      Search
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={handleClearSearch}
+                      className="flex-1 sm:flex-none"
+                    >
+                      Clear
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Card>
           </div>
-          <div className="flex-1">
+          <div className="w-full md:flex-1">
             <AddParticipantForm />
           </div>
         </div>

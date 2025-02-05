@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -105,15 +104,15 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
         <p className="text-center">Loading participants...</p>
       ) : (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredParticipants?.map((participant) => (
               <div
                 key={participant.id}
-                className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-white rounded-lg border gap-2"
               >
-                <span className="truncate">{participant.name}</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
+                <span className="truncate w-full sm:w-auto">{participant.name}</span>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <span className="text-sm text-gray-500">Level</span>
                     <Input
                       type="number"
@@ -129,7 +128,7 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
                     variant="destructive"
                     size="sm"
                     onClick={() => deleteParticipant.mutate(participant.id)}
-                    className="bg-red-600/80 hover:bg-red-600/90"
+                    className="bg-red-600/80 hover:bg-red-600/90 w-full sm:w-auto"
                   >
                     Remove
                   </Button>
@@ -147,4 +146,3 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
     </Card>
   );
 };
-
