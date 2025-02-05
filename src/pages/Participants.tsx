@@ -15,24 +15,40 @@ const Participants = () => {
   const [newParticipant, setNewParticipant] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: participants, isLoading } = useQuery({
+  const { data: participants, isLoading, error } = useQuery({
     queryKey: ["participants"],
     queryFn: async () => {
+      console.log('Fetching participants...');
       const { data, error } = await supabase
         .from("participants")
         .select("*")
         .order("name");
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error fetching participants:', error);
+        throw error;
+      }
+      
+      console.log('Participants fetched:', data);
       return data as Participant[];
     },
   });
 
   const addParticipant = useMutation({
     mutationFn: async (name: string) => {
-      const { error } = await supabase
+      console.log('Adding participant:', name);
+      const { data, error } = await supabase
         .from("participants")
-        .insert([{ name }]);
-      if (error) throw error;
+        .insert([{ name }])
+        .select();
+      
+      if (error) {
+        console.error('Error adding participant:', error);
+        throw error;
+      }
+      
+      console.log('Participant added:', data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participants"] });
@@ -47,11 +63,18 @@ const Participants = () => {
 
   const deleteParticipant = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting participant:', id);
       const { error } = await supabase
         .from("participants")
         .delete()
         .eq("id", id);
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error deleting participant:', error);
+        throw error;
+      }
+      
+      console.log('Participant deleted:', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participants"] });
@@ -69,6 +92,11 @@ const Participants = () => {
       addParticipant.mutate(newParticipant.trim());
     }
   };
+
+  if (error) {
+    console.error('Render error:', error);
+    return <div className="text-center text-red-500">Error loading participants</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
