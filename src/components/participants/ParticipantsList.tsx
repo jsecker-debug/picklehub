@@ -106,37 +106,39 @@ export const ParticipantsList = () => {
             <div>Level</div>
             <div></div>
           </div>
-          {participants?.map((participant) => (
-            <div
-              key={participant.id}
-              className="grid grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border"
-            >
-              <span>{participant.name}</span>
-              <Input
-                type="number"
-                value={participant.level?.toString() || "0"}
-                onChange={(e) => handleLevelChange(participant.id, e.target.value)}
-                step="0.1"
-                min="0"
-                max="10"
-                className="w-24"
-              />
-              <div className="flex justify-end">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deleteParticipant.mutate(participant.id)}
-                >
-                  Remove
-                </Button>
+          <div className="grid grid-cols-1 gap-4">
+            {participants?.map((participant) => (
+              <div
+                key={participant.id}
+                className="grid grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border"
+              >
+                <span>{participant.name}</span>
+                <Input
+                  type="number"
+                  value={participant.level?.toString() || "0"}
+                  onChange={(e) => handleLevelChange(participant.id, e.target.value)}
+                  step="0.1"
+                  min="0"
+                  max="10"
+                  className="w-24"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteParticipant.mutate(participant.id)}
+                  >
+                    Remove
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
-          {participants?.length === 0 && (
-            <p className="text-center text-gray-500">
-              No participants added yet
-            </p>
-          )}
+            ))}
+            {participants?.length === 0 && (
+              <p className="text-center text-gray-500">
+                No participants added yet
+              </p>
+            )}
+          </div>
         </div>
       )}
     </Card>
