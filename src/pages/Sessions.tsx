@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -199,7 +200,7 @@ const Sessions = () => {
 
           {selectedSessionId && (
             <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
-              <DialogContent className="max-w-4xl">
+              <DialogContent className="max-w-4xl max-h-[calc(100vh-24px)] my-12 overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Session Schedule</DialogTitle>
                 </DialogHeader>
@@ -235,3 +236,4 @@ const Sessions = () => {
 };
 
 export default Sessions;
+
