@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
+import { useParticipants } from "@/hooks/useParticipants";
 
 const Participants = () => {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: participants } = useParticipants();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +59,10 @@ const Participants = () => {
           <div className="flex-1">
             <AddParticipantForm />
           </div>
+        </div>
+
+        <div className="mb-4 text-sm text-gray-500 px-2">
+          Total Participants: {participants?.length || 0}
         </div>
 
         <ParticipantsList searchQuery={searchQuery} />

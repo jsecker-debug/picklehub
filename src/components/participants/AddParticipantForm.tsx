@@ -11,7 +11,6 @@ import { useParticipants } from "@/hooks/useParticipants";
 export const AddParticipantForm = () => {
   const [newParticipant, setNewParticipant] = useState("");
   const queryClient = useQueryClient();
-  const { data: participants } = useParticipants();
 
   const addParticipant = useMutation({
     mutationFn: async (name: string) => {
@@ -48,7 +47,7 @@ export const AddParticipantForm = () => {
   };
 
   return (
-    <Card className="p-6 mb-6">
+    <Card className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex gap-4">
           <Input
@@ -61,9 +60,6 @@ export const AddParticipantForm = () => {
             Add Participant
           </Button>
         </div>
-        <p className="text-sm text-gray-500">
-          Total Participants: {participants?.length || 0}
-        </p>
       </form>
     </Card>
   );
