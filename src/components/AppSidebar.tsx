@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-const AppSidebarContent = () => {
+const AppSidebarContent = ({ isMobile }: { isMobile?: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -49,9 +49,11 @@ const AppSidebarContent = () => {
           />
           <span className="text-xl font-bold">PickleHub</span>
         </div>
-        <DrawerClose className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
-          <X className="h-5 w-5" />
-        </DrawerClose>
+        {isMobile && (
+          <DrawerClose className="p-2 hover:bg-gray-100 rounded-lg lg:hidden">
+            <X className="h-5 w-5" />
+          </DrawerClose>
+        )}
       </div>
       <div className="bg-white rounded-lg shadow-sm">
         <SidebarContent className="px-1 py-1">
@@ -96,7 +98,7 @@ export function AppSidebar() {
         </DrawerTrigger>
         <DrawerContent className="p-4">
           <div className="relative bg-white rounded-lg">
-            <AppSidebarContent />
+            <AppSidebarContent isMobile={true} />
           </div>
         </DrawerContent>
       </Drawer>
@@ -105,7 +107,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="w-64 p-2 bg-[#f9fafb]">
-      <AppSidebarContent />
+      <AppSidebarContent isMobile={false} />
     </Sidebar>
   );
 }
