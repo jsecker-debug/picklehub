@@ -14,14 +14,18 @@ interface Participant {
 const Participants = () => {
   const [newParticipant, setNewParticipant] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Check initial auth state
-    const { data: { session } } = supabase.auth.getSession();
-    setIsAuthenticated(!!session);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    
+    checkSession();
 
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
     });
@@ -46,7 +50,7 @@ const Participants = () => {
       console.log('Participants fetched:', data);
       return data as Participant[];
     },
-    enabled: isAuthenticated, // Only fetch if authenticated
+    enabled: isAuthenticated,
   });
 
   const addParticipant = useMutation({
@@ -108,29 +112,80 @@ const Participants = () => {
     }
   };
 
-  const handleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github'
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+    
     if (error) {
-      toast.error("Failed to sign in");
+      toast.error(error.message);
       console.error("Sign in error:", error);
+    } else {
+      toast.success("Signed in successfully");
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    
+    if (error) {
+      toast.error(error.message);
+      console.error("Sign up error:", error);
+    } else {
+      toast.success("Check your email for the confirmation link!");
     }
   };
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-3xl font-bold text-primary mb-4">
-            Please Sign In
-          </h1>
-          <p className="text-gray-600 mb-6">
-            You need to be signed in to manage participants
-          </p>
-          <Button onClick={handleSignIn}>
-            Sign in with GitHub
-          </Button>
+        <div className="max-w-md mx-auto">
+          <Card className="p-6">
+            <h1 className="text-2xl font-bold text-primary mb-6 text-center">
+              Sign In or Sign Up
+            </h1>
+            <form className="space-y-4">
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={handleSignIn}
+                  className="flex-1"
+                  type="button"
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  onClick={handleSignUp}
+                  className="flex-1"
+                  variant="outline"
+                  type="button"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </form>
+          </Card>
         </div>
       </div>
     );
