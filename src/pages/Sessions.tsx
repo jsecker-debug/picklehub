@@ -82,20 +82,14 @@ const Sessions = () => {
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
-                <div className="border rounded-md p-2">
+                <div className="flex justify-center">
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    className="mx-auto"
                     initialFocus
                   />
                 </div>
-                {date && (
-                  <p className="text-sm text-muted-foreground">
-                    Selected: {format(date, "PPP")}
-                  </p>
-                )}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Venue</label>
