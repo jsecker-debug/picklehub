@@ -13,7 +13,7 @@ const GenerateButtons = ({ onGenerateSchedule, onGenerateKingCourt }: GenerateBu
         onClick={onGenerateSchedule}
         className="bg-primary hover:bg-primary/90"
       >
-        Generate First Half Schedule
+        Generate Random Schedule
       </Button>
       <Button
         onClick={onGenerateKingCourt}
