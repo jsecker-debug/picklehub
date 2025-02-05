@@ -1,5 +1,5 @@
 
-import { Users, Calendar, Menu } from "lucide-react";
+import { Users, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
