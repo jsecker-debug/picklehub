@@ -12,7 +12,7 @@ interface Participant {
   level?: number;
 }
 
-export const ParticipantsList = () => {
+export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string }) => {
   const queryClient = useQueryClient();
 
   const { data: participants, isLoading, error } = useQuery({
@@ -91,6 +91,10 @@ export const ParticipantsList = () => {
     }
   };
 
+  const filteredParticipants = participants?.filter(participant =>
+    participant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (error) {
     return <div className="text-center text-red-500">Error loading participants</div>;
   }
@@ -101,13 +105,8 @@ export const ParticipantsList = () => {
         <p className="text-center">Loading participants...</p>
       ) : (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4 mb-4 px-3 text-sm font-medium text-gray-500">
-            <div>Name</div>
-            <div>Level</div>
-            <div></div>
-          </div>
           <div className="grid grid-cols-3 gap-4">
-            {participants?.map((participant) => (
+            {filteredParticipants?.map((participant) => (
               <div
                 key={participant.id}
                 className="flex items-center justify-between p-3 bg-white rounded-lg border"
@@ -134,9 +133,9 @@ export const ParticipantsList = () => {
               </div>
             ))}
           </div>
-          {participants?.length === 0 && (
+          {filteredParticipants?.length === 0 && (
             <p className="text-center text-gray-500">
-              No participants added yet
+              No participants found
             </p>
           )}
         </div>
