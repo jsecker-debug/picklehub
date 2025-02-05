@@ -8,9 +8,11 @@ import { toast } from "sonner";
 interface DownloadPdfButtonProps {
   contentId: string;
   fileName: string;
+  className?: string;
+  children?: React.ReactNode;
 }
 
-const DownloadPdfButton = ({ contentId, fileName }: DownloadPdfButtonProps) => {
+const DownloadPdfButton = ({ contentId, fileName, className, children }: DownloadPdfButtonProps) => {
   const handleDownload = async () => {
     const element = document.getElementById(contentId);
     if (!element) {
@@ -88,13 +90,17 @@ const DownloadPdfButton = ({ contentId, fileName }: DownloadPdfButtonProps) => {
   return (
     <Button 
       onClick={handleDownload}
-      variant="outline" 
-      className="gap-2"
+      className={className}
     >
-      <Download className="h-4 w-4" />
-      Download PDF
+      {children || (
+        <>
+          <Download className="h-4 w-4" />
+          Download PDF
+        </>
+      )}
     </Button>
   );
 };
 
 export default DownloadPdfButton;
+
