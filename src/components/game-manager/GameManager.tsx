@@ -107,7 +107,7 @@ const GameManager = () => {
           <div className="mt-8 mb-8">
             <DownloadPdfButton
               contentId="schedule-content"
-              fileName="volleyball-schedule"
+              fileName="pickleball-schedule"
               className="w-full"
             />
           </div>
