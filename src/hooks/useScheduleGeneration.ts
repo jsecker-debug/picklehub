@@ -31,43 +31,39 @@ export const useScheduleGeneration = ({
     const restCounts = new Array(totalPlayers).fill(0);
 
     for (let rotationNum = 0; rotationNum < 8; rotationNum++) {
-      let maxPlayersPerRotation = 4 * 4; // 16
-      let restersCount;
-      if (totalPlayers <= maxPlayersPerRotation) {
-        restersCount = totalPlayers % 4 === 0 ? 0 : 4 - (totalPlayers % 4);
-      } else {
-        restersCount = totalPlayers - maxPlayersPerRotation;
-      }
-
+      // Calculate how many complete courts we can make (each court needs 4 players)
+      const maxCompleteCourts = Math.floor((totalPlayers - restCounts.filter(count => count > 0).length) / 4);
+      const playersNeededForCourts = maxCompleteCourts * 4;
+      
+      // Determine resters - players who won't play this rotation
       let playersWithRest = players.map((_, idx) => ({ idx, count: restCounts[idx] }));
       playersWithRest.sort((a, b) => a.count - b.count);
-      let groups: { [key: number]: number[] } = {};
-      playersWithRest.forEach((p) => {
-        if (!groups[p.count]) groups[p.count] = [];
-        groups[p.count].push(p.idx);
-      });
-      Object.values(groups).forEach((group) => shuffle(group));
-      let sortedPlayers = Object.values(groups).flat();
+      
+      const restersCount = totalPlayers - playersNeededForCourts;
+      let resters = playersWithRest.slice(0, restersCount).map(p => p.idx);
+      resters.forEach(idx => restCounts[idx]++);
 
-      let resters = sortedPlayers.slice(0, restersCount);
-      resters.forEach((idx) => restCounts[idx]++);
+      // Get available players for this rotation
+      let availablePlayers = playersWithRest
+        .filter(p => !resters.includes(p.idx))
+        .map(p => p.idx);
+      shuffle(availablePlayers);
 
-      let nonResters = sortedPlayers.slice(restersCount);
-      shuffle(nonResters);
-
+      // Create courts with complete teams only
       let courts = [];
-      for (let i = 0; i < nonResters.length; i += 4) {
-        let courtIndices = nonResters.slice(i, i + 4);
-        let courtPlayers = courtIndices.map((idx) => players[idx]);
-        courts.push({
-          team1: [courtPlayers[0], courtPlayers[1]],
-          team2: [courtPlayers[2], courtPlayers[3]],
-        });
+      for (let i = 0; i < availablePlayers.length; i += 4) {
+        if (i + 3 < availablePlayers.length) { // Only create court if we have 4 players
+          const courtPlayers = availablePlayers.slice(i, i + 4).map(idx => players[idx]);
+          courts.push({
+            team1: [courtPlayers[0], courtPlayers[1]],
+            team2: [courtPlayers[2], courtPlayers[3]]
+          });
+        }
       }
 
       rotations.push({
         courts: courts,
-        resters: resters.map((idx) => players[idx]),
+        resters: resters.map(idx => players[idx])
       });
     }
 
@@ -82,35 +78,30 @@ export const useScheduleGeneration = ({
     }
 
     const totalPlayers = players.length;
-    let maxPlayers = 4 * 4; // 16
-    let restersCount;
+    const maxCompleteCourts = Math.floor(totalPlayers / 4);
+    const playersNeededForCourts = maxCompleteCourts * 4;
+    const restersCount = totalPlayers - playersNeededForCourts;
 
-    if (totalPlayers <= maxPlayers) {
-      restersCount = totalPlayers % 4 === 0 ? 0 : 4 - (totalPlayers % 4);
-    } else {
-      restersCount = totalPlayers - maxPlayers;
-    }
+    let availablePlayers = [...Array(totalPlayers).keys()];
+    shuffle(availablePlayers);
 
-    let sortedPlayers = players.map((_, idx) => idx);
-    shuffle(sortedPlayers);
-
-    let resters = sortedPlayers.slice(0, restersCount);
-    let nonResters = sortedPlayers.slice(restersCount);
-    shuffle(nonResters);
+    let resters = availablePlayers.slice(0, restersCount);
+    let activePlayers = availablePlayers.slice(restersCount);
 
     let courts = [];
-    for (let i = 0; i < nonResters.length; i += 4) {
-      let courtIndices = nonResters.slice(i, i + 4);
-      let courtPlayers = courtIndices.map((idx) => players[idx]);
-      courts.push({
-        team1: [courtPlayers[0], courtPlayers[1]],
-        team2: [courtPlayers[2], courtPlayers[3]],
-      });
+    for (let i = 0; i < activePlayers.length; i += 4) {
+      if (i + 3 < activePlayers.length) {
+        const courtPlayers = activePlayers.slice(i, i + 4).map(idx => players[idx]);
+        courts.push({
+          team1: [courtPlayers[0], courtPlayers[1]],
+          team2: [courtPlayers[2], courtPlayers[3]]
+        });
+      }
     }
 
     setKingCourtRotation({
       courts: courts,
-      resters: resters.map((idx) => players[idx]),
+      resters: resters.map(idx => players[idx])
     });
   };
 
@@ -121,4 +112,3 @@ export const useScheduleGeneration = ({
 
   return { generateSchedule };
 };
-
