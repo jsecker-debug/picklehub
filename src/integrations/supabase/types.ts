@@ -44,24 +44,86 @@ export type Database = {
           },
         ]
       }
+      game_results: {
+        Row: {
+          court_number: number | null
+          created_at: string | null
+          game_number: number | null
+          id: string
+          is_best_of_three: boolean | null
+          losing_team_players: string[]
+          losing_team_score: number
+          session_id: number | null
+          winning_team_players: string[]
+          winning_team_score: number
+        }
+        Insert: {
+          court_number?: number | null
+          created_at?: string | null
+          game_number?: number | null
+          id?: string
+          is_best_of_three?: boolean | null
+          losing_team_players: string[]
+          losing_team_score: number
+          session_id?: number | null
+          winning_team_players: string[]
+          winning_team_score: number
+        }
+        Update: {
+          court_number?: number | null
+          created_at?: string | null
+          game_number?: number | null
+          id?: string
+          is_best_of_three?: boolean | null
+          losing_team_players?: string[]
+          losing_team_score?: number
+          session_id?: number | null
+          winning_team_players?: string[]
+          winning_team_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       participants: {
         Row: {
           created_at: string
           id: string
           level: number | null
+          losses: number | null
           name: string | null
+          rating_confidence: number | null
+          rating_volatility: number | null
+          total_games_played: number | null
+          wins: number | null
         }
         Insert: {
           created_at?: string
           id?: string
           level?: number | null
+          losses?: number | null
           name?: string | null
+          rating_confidence?: number | null
+          rating_volatility?: number | null
+          total_games_played?: number | null
+          wins?: number | null
         }
         Update: {
           created_at?: string
           id?: string
           level?: number | null
+          losses?: number | null
           name?: string | null
+          rating_confidence?: number | null
+          rating_volatility?: number | null
+          total_games_played?: number | null
+          wins?: number | null
         }
         Relationships: []
       }
