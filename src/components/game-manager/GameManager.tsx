@@ -13,6 +13,7 @@ import SessionSelect from "./SessionSelect";
 import SaveScheduleButton from "./SaveScheduleButton";
 import { useGameSchedule } from "@/hooks/useGameSchedule";
 import { useScheduleGeneration } from "@/hooks/useScheduleGeneration";
+import DownloadPdfButton from "@/components/DownloadPdfButton";
 
 const GameManager = () => {
   const [temporaryPlayers, setTemporaryPlayers] = useState("");
@@ -90,31 +91,42 @@ const GameManager = () => {
       </div>
 
       {rotations.length > 0 && (
-        <CourtDisplay rotations={rotations} isKingCourt={false} />
+        <div id="schedule-content">
+          <CourtDisplay rotations={rotations} isKingCourt={false} />
+        </div>
       )}
 
       {kingCourtRotation && (
-        <div className="mt-8">
+        <div className="mt-8" id="king-court-content">
           <CourtDisplay rotations={[kingCourtRotation]} isKingCourt={true} />
         </div>
       )}
 
       {(rotations.length > 0 || kingCourtRotation) && (
-        <div className="mt-8 space-y-4">
-          <SessionSelect 
-            sessions={sessions}
-            selectedSession={selectedSession}
-            setSelectedSession={setSelectedSession}
-          />
-          <SaveScheduleButton 
-            selectedSession={selectedSession}
-            saveScheduleMutation={saveScheduleMutation}
-          />
-        </div>
+        <>
+          <div className="mt-8 mb-8">
+            <DownloadPdfButton
+              contentId="schedule-content"
+              fileName="volleyball-schedule"
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <SessionSelect 
+              sessions={sessions}
+              selectedSession={selectedSession}
+              setSelectedSession={setSelectedSession}
+            />
+            <SaveScheduleButton 
+              selectedSession={selectedSession}
+              saveScheduleMutation={saveScheduleMutation}
+            />
+          </div>
+        </>
       )}
     </Card>
   );
 };
 
 export default GameManager;
-
