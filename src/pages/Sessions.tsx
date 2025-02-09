@@ -223,13 +223,17 @@ const Sessions = () => {
                             {scheduleData.randomRotations.length > 0 && (
                               <CourtDisplay 
                                 rotations={scheduleData.randomRotations} 
-                                isKingCourt={false} 
+                                isKingCourt={false}
+                                sessionId={selectedSessionId}
+                                sessionStatus={sessions?.find(s => s.id === selectedSessionId)?.Status}
                               />
                             )}
                             {scheduleData.kingCourtRotation && (
                               <CourtDisplay 
                                 rotations={[scheduleData.kingCourtRotation]} 
-                                isKingCourt={true} 
+                                isKingCourt={true}
+                                sessionId={selectedSessionId}
+                                sessionStatus={sessions?.find(s => s.id === selectedSessionId)?.Status}
                               />
                             )}
                           </div>

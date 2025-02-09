@@ -193,6 +193,7 @@ export type Database = {
           created_at: string
           Date: string | null
           id: number
+          scores_entered: boolean | null
           Status: string | null
           Venue: string | null
         }
@@ -200,6 +201,7 @@ export type Database = {
           created_at?: string
           Date?: string | null
           id?: number
+          scores_entered?: boolean | null
           Status?: string | null
           Venue?: string | null
         }
@@ -207,6 +209,7 @@ export type Database = {
           created_at?: string
           Date?: string | null
           id?: number
+          scores_entered?: boolean | null
           Status?: string | null
           Venue?: string | null
         }
