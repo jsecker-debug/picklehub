@@ -19,7 +19,7 @@ interface Court {
 interface Rotation {
   courts: Court[];
   resters: string[];
-  id?: string; // Add rotation ID to track the correct rotation
+  id?: string;
 }
 
 interface CourtDisplayProps {
@@ -148,51 +148,58 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     // If there was a player in the target position, move them to the source position
     if (droppedOnPlayer) {
-      sourceCourt[dragData.teamType].push(droppedOnPlayer);
-      targetCourt[targetTeamType] = targetCourt[targetTeamType].filter(
-        p => p !== droppedOnPlayer
-      );
+      sourceCourt[dragData.teamType] = [droppedOnPlayer]; // Ensure only one player in source position
     }
 
     // Add dragged player to target team
-    targetCourt[targetTeamType] = [dragData.player];
+    targetCourt[targetTeamType] = [dragData.player]; // Ensure only one player in target position
 
     setLocalRotations(newRotations);
 
     // Update in Supabase
     try {
-      // First, update the rotation to mark it as manually modified
-      const { error: rotationError } = await supabase
-        .from('rotations')
-        .update({ 
-          manually_modified: true 
-        })
-        .eq('id', targetRotation.id);
+      // First, update the rotations to mark them as manually modified
+      const rotationsToUpdate = [sourceRotation.id, targetRotation.id];
+      for (const rotationId of rotationsToUpdate) {
+        const { error: rotationError } = await supabase
+          .from('rotations')
+          .update({ 
+            manually_modified: true 
+          })
+          .eq('id', rotationId);
 
-      if (rotationError) throw rotationError;
+        if (rotationError) throw rotationError;
+      }
 
       // Then update both court assignments
-      const { error: sourceCourtError } = await supabase
-        .from('court_assignments')
-        .update({
-          team1_players: sourceCourt.team1,
-          team2_players: sourceCourt.team2
-        })
-        .eq('rotation_id', sourceRotation.id)
-        .eq('court_number', dragData.courtIndex + 1);
+      const updates = [
+        {
+          rotation_id: sourceRotation.id,
+          court_number: dragData.courtIndex + 1,
+          data: {
+            team1_players: sourceCourt.team1,
+            team2_players: sourceCourt.team2
+          }
+        },
+        {
+          rotation_id: targetRotation.id,
+          court_number: targetCourtIndex + 1,
+          data: {
+            team1_players: targetCourt.team1,
+            team2_players: targetCourt.team2
+          }
+        }
+      ];
 
-      if (sourceCourtError) throw sourceCourtError;
+      for (const update of updates) {
+        const { error: courtError } = await supabase
+          .from('court_assignments')
+          .update(update.data)
+          .eq('rotation_id', update.rotation_id)
+          .eq('court_number', update.court_number);
 
-      const { error: targetCourtError } = await supabase
-        .from('court_assignments')
-        .update({
-          team1_players: targetCourt.team1,
-          team2_players: targetCourt.team2
-        })
-        .eq('rotation_id', targetRotation.id)
-        .eq('court_number', targetCourtIndex + 1);
-
-      if (targetCourtError) throw targetCourtError;
+        if (courtError) throw courtError;
+      }
 
       toast.success("Player positions updated successfully");
     } catch (error) {
