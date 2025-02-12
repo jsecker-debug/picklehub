@@ -3,6 +3,7 @@ import { useRef } from "react";
 
 interface DraggablePlayerProps {
   player: string;
+  gender: string;
   teamType: 'team1' | 'team2';
   courtIndex: number;
   rotationIndex: number;
@@ -16,6 +17,7 @@ interface DraggablePlayerProps {
 
 const DraggablePlayer = ({ 
   player, 
+  gender,
   teamType, 
   courtIndex, 
   rotationIndex,
@@ -32,9 +34,10 @@ const DraggablePlayer = ({
       ref={dragRef}
       draggable
       onDragStart={handleDragStart}
-      className="cursor-move select-none hover:bg-gray-100 px-2 py-1 rounded"
+      className="cursor-move select-none hover:bg-gray-100 px-2 py-1 rounded inline-flex items-center gap-1"
     >
       {player}
+      <span className="text-xs text-gray-500">({gender})</span>
     </span>
   );
 };

@@ -1,11 +1,15 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import DraggablePlayer from "./DraggablePlayer";
+
+interface Player {
+  name: string;
+  gender: string;
+}
 
 interface Court {
   team1: string[];
@@ -27,12 +31,35 @@ interface CourtDisplayProps {
 const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: CourtDisplayProps) => {
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
   const [localRotations, setLocalRotations] = useState<Rotation[]>(rotations);
+  const [players, setPlayers] = useState<{ [key: string]: Player }>({});
   const [dragData, setDragData] = useState<{
     player: string;
     teamType: 'team1' | 'team2';
     courtIndex: number;
     rotationIndex: number;
   } | null>(null);
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      const { data, error } = await supabase
+        .from('participants')
+        .select('name, gender');
+      
+      if (error) {
+        console.error('Error fetching players:', error);
+        return;
+      }
+
+      const playersMap = data.reduce((acc: { [key: string]: Player }, player) => {
+        acc[player.name] = { name: player.name, gender: player.gender };
+        return acc;
+      }, {});
+
+      setPlayers(playersMap);
+    };
+
+    fetchPlayers();
+  }, []);
 
   const handleScoreChange = (
     rotationIndex: number,
@@ -82,15 +109,25 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     if (!sourceCourt || !targetCourt) return;
 
-    // Remove player from source team
+    // Find the player being dropped on (if any)
+    const targetTeamPlayers = targetCourt[targetTeamType];
+    const droppedOnPlayer = targetTeamPlayers.length > 0 ? targetTeamPlayers[0] : null;
+
+    // Remove dragged player from source team
     sourceCourt[dragData.teamType] = sourceCourt[dragData.teamType].filter(
       p => p !== dragData.player
     );
 
-    // Add player to target team
-    if (!targetCourt[targetTeamType].includes(dragData.player)) {
-      targetCourt[targetTeamType].push(dragData.player);
+    // If there was a player in the target position, move them to the source position
+    if (droppedOnPlayer) {
+      sourceCourt[dragData.teamType].push(droppedOnPlayer);
+      targetCourt[targetTeamType] = targetCourt[targetTeamType].filter(
+        p => p !== droppedOnPlayer
+      );
     }
+
+    // Add dragged player to target team
+    targetCourt[targetTeamType] = [dragData.player];
 
     setLocalRotations(newRotations);
 
@@ -107,8 +144,19 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
       if (rotationError) throw rotationError;
 
-      // Then update the court assignments
-      const { error: courtError } = await supabase
+      // Then update both court assignments
+      const { error: sourceCourtError } = await supabase
+        .from('court_assignments')
+        .update({
+          team1_players: sourceCourt.team1,
+          team2_players: sourceCourt.team2
+        })
+        .eq('rotation_id', sessionId)
+        .eq('court_number', dragData.courtIndex + 1);
+
+      if (sourceCourtError) throw sourceCourtError;
+
+      const { error: targetCourtError } = await supabase
         .from('court_assignments')
         .update({
           team1_players: targetCourt.team1,
@@ -117,7 +165,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
         .eq('rotation_id', sessionId)
         .eq('court_number', targetCourtIndex + 1);
 
-      if (courtError) throw courtError;
+      if (targetCourtError) throw targetCourtError;
 
       toast.success("Player positions updated successfully");
     } catch (error) {
@@ -217,6 +265,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                           <DraggablePlayer
                             key={playerIdx}
                             player={player}
+                            gender={players[player]?.gender || 'M'}
                             teamType="team1"
                             courtIndex={courtIdx}
                             rotationIndex={idx}
@@ -236,6 +285,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                           <DraggablePlayer
                             key={playerIdx}
                             player={player}
+                            gender={players[player]?.gender || 'M'}
                             teamType="team2"
                             courtIndex={courtIdx}
                             rotationIndex={idx}
@@ -285,7 +335,15 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
             {rotation.resters.length > 0 && (
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-600">Resting:</span>{" "}
-                <span>{rotation.resters.join(", ")}</span>
+                <span>
+                  {rotation.resters.map((player, idx) => (
+                    <span key={idx} className="inline-flex items-center gap-1">
+                      {player}
+                      <span className="text-xs text-gray-500">({players[player]?.gender || 'M'})</span>
+                      {idx < rotation.resters.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </span>
               </div>
             )}
           </Card>
