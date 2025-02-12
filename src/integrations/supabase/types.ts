@@ -161,6 +161,8 @@ export type Database = {
           created_at: string
           id: string
           is_king_court: boolean | null
+          last_modified: string | null
+          manually_modified: boolean | null
           rotation_number: number | null
           session_id: number | null
         }
@@ -168,6 +170,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_king_court?: boolean | null
+          last_modified?: string | null
+          manually_modified?: boolean | null
           rotation_number?: number | null
           session_id?: number | null
         }
@@ -175,6 +179,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_king_court?: boolean | null
+          last_modified?: string | null
+          manually_modified?: boolean | null
           rotation_number?: number | null
           session_id?: number | null
         }

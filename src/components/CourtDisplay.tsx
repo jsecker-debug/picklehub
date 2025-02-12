@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import DraggablePlayer from "./DraggablePlayer";
 
 interface Court {
   team1: string[];
@@ -25,6 +26,13 @@ interface CourtDisplayProps {
 
 const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: CourtDisplayProps) => {
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
+  const [localRotations, setLocalRotations] = useState<Rotation[]>(rotations);
+  const [dragData, setDragData] = useState<{
+    player: string;
+    teamType: 'team1' | 'team2';
+    courtIndex: number;
+    rotationIndex: number;
+  } | null>(null);
 
   const handleScoreChange = (
     rotationIndex: number,
@@ -40,6 +48,88 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
         [team]: value
       }
     }));
+  };
+
+  const handleDragStart = (
+    e: React.DragEvent,
+    data: {
+      player: string;
+      teamType: 'team1' | 'team2';
+      courtIndex: number;
+      rotationIndex: number;
+    }
+  ) => {
+    setDragData(data);
+  };
+
+  const handleDrop = async (
+    e: React.DragEvent,
+    targetTeamType: 'team1' | 'team2',
+    targetCourtIndex: number,
+    targetRotationIndex: number
+  ) => {
+    e.preventDefault();
+    if (!dragData) return;
+
+    const newRotations = [...localRotations];
+    const sourceRotation = newRotations[dragData.rotationIndex];
+    const targetRotation = newRotations[targetRotationIndex];
+
+    if (!sourceRotation || !targetRotation) return;
+
+    const sourceCourt = sourceRotation.courts[dragData.courtIndex];
+    const targetCourt = targetRotation.courts[targetCourtIndex];
+
+    if (!sourceCourt || !targetCourt) return;
+
+    // Remove player from source team
+    sourceCourt[dragData.teamType] = sourceCourt[dragData.teamType].filter(
+      p => p !== dragData.player
+    );
+
+    // Add player to target team
+    if (!targetCourt[targetTeamType].includes(dragData.player)) {
+      targetCourt[targetTeamType].push(dragData.player);
+    }
+
+    setLocalRotations(newRotations);
+
+    // Update in Supabase
+    try {
+      // First, update the rotation to mark it as manually modified
+      const { error: rotationError } = await supabase
+        .from('rotations')
+        .update({ 
+          manually_modified: true 
+        })
+        .eq('session_id', sessionId)
+        .eq('rotation_number', targetRotationIndex + 1);
+
+      if (rotationError) throw rotationError;
+
+      // Then update the court assignments
+      const { error: courtError } = await supabase
+        .from('court_assignments')
+        .update({
+          team1_players: targetCourt.team1,
+          team2_players: targetCourt.team2
+        })
+        .eq('rotation_id', sessionId)
+        .eq('court_number', targetCourtIndex + 1);
+
+      if (courtError) throw courtError;
+
+      toast.success("Player positions updated successfully");
+    } catch (error) {
+      console.error('Error updating player positions:', error);
+      toast.error("Failed to update player positions");
+      // Revert changes on error
+      setLocalRotations(rotations);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   const handleSubmitScore = async (rotationIndex: number, courtIndex: number, court: Court) => {
@@ -103,7 +193,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   return (
     <div className="space-y-8">
       <div id="court-rotations" className="bg-white">
-        {rotations.map((rotation, idx) => (
+        {localRotations.map((rotation, idx) => (
           <Card key={idx} className="p-6 mb-6 bg-white">
             <h2 className="text-xl font-semibold mb-4 text-primary">
               {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
@@ -116,16 +206,46 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                     Court {courtIdx + 1}
                   </h3>
                   <div className="space-y-2">
-                    <div className="flex justify-between items-center">
+                    <div 
+                      className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'team1', courtIdx, idx)}
+                    >
                       <span className="text-sm text-gray-600">Team 1:</span>
-                      <span className="font-medium">{court.team1.join(" & ")}</span>
+                      <span className="font-medium space-x-2">
+                        {court.team1.map((player, playerIdx) => (
+                          <DraggablePlayer
+                            key={playerIdx}
+                            player={player}
+                            teamType="team1"
+                            courtIndex={courtIdx}
+                            rotationIndex={idx}
+                            onDragStart={handleDragStart}
+                          />
+                        ))}
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div 
+                      className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200"
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'team2', courtIdx, idx)}
+                    >
                       <span className="text-sm text-gray-600">Team 2:</span>
-                      <span className="font-medium">{court.team2.join(" & ")}</span>
+                      <span className="font-medium space-x-2">
+                        {court.team2.map((player, playerIdx) => (
+                          <DraggablePlayer
+                            key={playerIdx}
+                            player={player}
+                            teamType="team2"
+                            courtIndex={courtIdx}
+                            rotationIndex={idx}
+                            onDragStart={handleDragStart}
+                          />
+                        ))}
+                      </span>
                     </div>
 
-                    {sessionStatus === 'Ready' && (
+                    {sessionStatus === 'Ready' && !isKingCourt && (
                       <div className="mt-4 space-y-4">
                         <div className="flex gap-4">
                           <div className="flex-1">
@@ -176,4 +296,3 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 };
 
 export default CourtDisplay;
-
