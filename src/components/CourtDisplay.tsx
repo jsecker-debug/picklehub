@@ -19,6 +19,7 @@ interface Court {
 interface Rotation {
   courts: Court[];
   resters: string[];
+  id?: string; // Add rotation ID to track the correct rotation
 }
 
 interface CourtDisplayProps {
@@ -60,6 +61,33 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     fetchPlayers();
   }, []);
+
+  useEffect(() => {
+    const fetchRotationIds = async () => {
+      if (!sessionId) return;
+      
+      const { data, error } = await supabase
+        .from('rotations')
+        .select('id, rotation_number')
+        .eq('session_id', sessionId)
+        .order('rotation_number', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching rotation IDs:', error);
+        return;
+      }
+
+      // Update local rotations with their IDs
+      setLocalRotations(prevRotations => 
+        prevRotations.map((rotation, index) => ({
+          ...rotation,
+          id: data.find(r => r.rotation_number === index + 1)?.id
+        }))
+      );
+    };
+
+    fetchRotationIds();
+  }, [sessionId]);
 
   const handleScoreChange = (
     rotationIndex: number,
@@ -139,8 +167,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
         .update({ 
           manually_modified: true 
         })
-        .eq('session_id', sessionId)
-        .eq('rotation_number', targetRotationIndex + 1);
+        .eq('id', targetRotation.id);
 
       if (rotationError) throw rotationError;
 
@@ -151,7 +178,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
           team1_players: sourceCourt.team1,
           team2_players: sourceCourt.team2
         })
-        .eq('rotation_id', sessionId)
+        .eq('rotation_id', sourceRotation.id)
         .eq('court_number', dragData.courtIndex + 1);
 
       if (sourceCourtError) throw sourceCourtError;
@@ -162,7 +189,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
           team1_players: targetCourt.team1,
           team2_players: targetCourt.team2
         })
-        .eq('rotation_id', sessionId)
+        .eq('rotation_id', targetRotation.id)
         .eq('court_number', targetCourtIndex + 1);
 
       if (targetCourtError) throw targetCourtError;
