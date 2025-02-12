@@ -9,6 +9,7 @@ interface Participant {
   id: string;
   name: string;
   level?: number;
+  gender?: string;
 }
 
 export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string }) => {
@@ -110,7 +111,9 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
                 key={participant.id}
                 className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-white rounded-lg border gap-2"
               >
-                <span className="truncate w-full sm:w-auto">{participant.name}</span>
+                <span className="truncate w-full sm:w-auto">
+                  {participant.name} {participant.gender ? `(${participant.gender.charAt(0)})` : ''}
+                </span>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <span className="text-sm text-gray-500">Level</span>
