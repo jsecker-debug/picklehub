@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -12,6 +11,18 @@ const Home = () => {
           <p className="text-gray-600 mt-4 text-lg">
             Your complete solution for managing pickleball sessions and schedules.
           </p>
+        </div>
+
+        <div className="mb-8 space-x-4">
+          <Link to="/" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
+            Scheduler
+          </Link>
+          <Link to="/participants" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
+            Participants
+          </Link>
+          <Link to="/sessions" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
+            Sessions
+          </Link>
         </div>
 
         <div className="space-y-6">
