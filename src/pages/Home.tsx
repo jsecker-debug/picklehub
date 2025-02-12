@@ -14,7 +14,7 @@ const Home = () => {
         </div>
 
         <div className="mb-8 space-x-4">
-          <Link to="/" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
+          <Link to="/index" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
             Scheduler
           </Link>
           <Link to="/participants" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
