@@ -1,10 +1,16 @@
-import { Calendar, Users, Clock } from "lucide-react";
+
+import { Calendar, Users, Clock, Home } from "lucide-react";
 
 export const navigationItems = [
   {
+    title: "Home",
+    icon: Home,
+    path: "/home",
+  },
+  {
     title: "Scheduler",
     icon: Calendar,
-    path: "/",
+    path: "/scheduler",
   },
   {
     title: "Participants",
