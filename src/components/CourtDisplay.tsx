@@ -137,41 +137,57 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     if (!sourceCourt || !targetCourt) return;
 
-    // Find the player being dropped on (if any)
+    // Get the player being dropped on
     const targetTeamPlayers = targetCourt[targetTeamType];
-    const droppedOnPlayer = targetTeamPlayers.length > 0 ? targetTeamPlayers[0] : null;
+    const sourceTeamPlayers = sourceCourt[dragData.teamType];
 
-    // Remove dragged player from source team
-    sourceCourt[dragData.teamType] = sourceCourt[dragData.teamType].filter(
-      p => p !== dragData.player
-    );
+    // Find the position index of the dragged player in the source team
+    const draggedPlayerIndex = sourceTeamPlayers.indexOf(dragData.player);
+    
+    // Find the position index in target team that corresponds to where the player was dropped
+    // If the target team has two players, use the same index as the source
+    // If the target team has one player, use index 0
+    const targetIndex = Math.min(draggedPlayerIndex, targetTeamPlayers.length - 1);
 
-    // If there was a player in the target position, move them to the source position
-    if (droppedOnPlayer) {
-      sourceCourt[dragData.teamType] = [droppedOnPlayer]; // Ensure only one player in source position
+    // Get the player to swap with (if any)
+    const playerToSwap = targetTeamPlayers[targetIndex];
+
+    // Create new arrays for the updated teams
+    const newSourceTeamPlayers = [...sourceTeamPlayers];
+    const newTargetTeamPlayers = [...targetTeamPlayers];
+
+    // Update the source team - replace dragged player with swapped player
+    if (playerToSwap) {
+      newSourceTeamPlayers[draggedPlayerIndex] = playerToSwap;
     }
 
-    // Add dragged player to target team
-    targetCourt[targetTeamType] = [dragData.player]; // Ensure only one player in target position
+    // Update the target team - place dragged player in the correct position
+    if (targetIndex < newTargetTeamPlayers.length) {
+      newTargetTeamPlayers[targetIndex] = dragData.player;
+    } else {
+      newTargetTeamPlayers.push(dragData.player);
+    }
+
+    // Update the courts with the new player arrangements
+    sourceCourt[dragData.teamType] = newSourceTeamPlayers;
+    targetCourt[targetTeamType] = newTargetTeamPlayers;
 
     setLocalRotations(newRotations);
 
     // Update in Supabase
     try {
-      // First, update the rotations to mark them as manually modified
+      // Update both rotations to mark them as manually modified
       const rotationsToUpdate = [sourceRotation.id, targetRotation.id];
       for (const rotationId of rotationsToUpdate) {
         const { error: rotationError } = await supabase
           .from('rotations')
-          .update({ 
-            manually_modified: true 
-          })
+          .update({ manually_modified: true })
           .eq('id', rotationId);
 
         if (rotationError) throw rotationError;
       }
 
-      // Then update both court assignments
+      // Update both court assignments
       const updates = [
         {
           rotation_id: sourceRotation.id,
