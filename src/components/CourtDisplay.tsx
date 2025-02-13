@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -16,12 +17,6 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
   const [localRotations, setLocalRotations] = useState<Rotation[]>(rotations);
   const [players, setPlayers] = useState<{ [key: string]: { name: string; gender: string } }>({});
-  const [dragData, setDragData] = useState<{
-    player: string;
-    teamType: 'team1' | 'team2';
-    courtIndex: number;
-    rotationIndex: number;
-  } | null>(null);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -51,25 +46,35 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       
       const { data, error } = await supabase
         .from('rotations')
-        .select('id, rotation_number')
+        .select(`
+          id,
+          is_king_court,
+          rotation_number,
+          court_assignments (
+            court_number,
+            team1_players,
+            team2_players
+          ),
+          roation_resters (
+            resting_players
+          )
+        `)
         .eq('session_id', sessionId)
         .order('rotation_number', { ascending: true });
       
-      if (error) {
-        console.error('Error fetching rotation IDs:', error);
-        return;
-      }
+      if (error) throw error;
 
-      setLocalRotations(prevRotations => 
-        prevRotations.map((rotation, index) => ({
-          ...rotation,
-          id: data.find(r => r.rotation_number === index + 1)?.id
-        }))
-      );
+      // Update local rotations with IDs
+      const updatedRotations = rotations.map((rotation, index) => ({
+        ...rotation,
+        id: data.find(r => r.rotation_number === index + 1)?.id
+      }));
+      
+      setLocalRotations(updatedRotations);
     };
 
     fetchRotationIds();
-  }, [sessionId]);
+  }, [sessionId, rotations]);
 
   const handleScoreChange = (
     rotationIndex: number,
@@ -96,104 +101,125 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       rotationIndex: number;
     }
   ) => {
-    setDragData(data);
-    await handleDrop(e, data.teamType, data.courtIndex, data.rotationIndex);
+    // Prevent dragging if no session ID
+    if (!sessionId) {
+      toast.error("Cannot modify teams without a valid session");
+      return;
+    }
+
+    await handleSwap(data.player, data.teamType, data.courtIndex, data.rotationIndex);
   };
 
-  const handleDrop = async (
-    e: React.DragEvent,
+  const handleSwap = async (
+    player: string,
     targetTeamType: 'team1' | 'team2',
     targetCourtIndex: number,
     targetRotationIndex: number
   ) => {
-    e.preventDefault();
-    if (!dragData) return;
-
     const newRotations = [...localRotations];
-    const sourceRotation = newRotations[dragData.rotationIndex];
     const targetRotation = newRotations[targetRotationIndex];
 
-    if (!sourceRotation || !targetRotation) return;
-
-    const sourceCourt = sourceRotation.courts[dragData.courtIndex];
-    const targetCourt = targetRotation.courts[targetCourtIndex];
-
-    if (!sourceCourt || !targetCourt) return;
-
-    const targetTeamPlayers = targetCourt[targetTeamType];
-    const sourceTeamPlayers = sourceCourt[dragData.teamType];
-    const draggedPlayerIndex = sourceTeamPlayers.indexOf(dragData.player);
-    const targetIndex = Math.min(draggedPlayerIndex, targetTeamPlayers.length - 1);
-    const playerToSwap = targetTeamPlayers[targetIndex];
-
-    const newSourceTeamPlayers = [...sourceTeamPlayers];
-    const newTargetTeamPlayers = [...targetTeamPlayers];
-
-    if (playerToSwap) {
-      newSourceTeamPlayers[draggedPlayerIndex] = playerToSwap;
-      if (targetIndex < newTargetTeamPlayers.length) {
-        newTargetTeamPlayers[targetIndex] = dragData.player;
-      }
-    } else {
-      newSourceTeamPlayers.splice(draggedPlayerIndex, 1);
-      newTargetTeamPlayers.push(dragData.player);
+    if (!targetRotation || !targetRotation.id) {
+      toast.error("Invalid rotation data");
+      return;
     }
 
-    sourceCourt[dragData.teamType] = newSourceTeamPlayers;
-    targetCourt[targetTeamType] = newTargetTeamPlayers;
+    const targetCourt = targetRotation.courts[targetCourtIndex];
+    if (!targetCourt) {
+      toast.error("Invalid court data");
+      return;
+    }
 
-    setLocalRotations([...newRotations]);
+    // Find the player's current position
+    let sourceRotationIndex = -1;
+    let sourceCourtIndex = -1;
+    let sourceTeamType: 'team1' | 'team2' | null = null;
+
+    for (let rIdx = 0; rIdx < newRotations.length; rIdx++) {
+      const rotation = newRotations[rIdx];
+      for (let cIdx = 0; cIdx < rotation.courts.length; cIdx++) {
+        const court = rotation.courts[cIdx];
+        if (court.team1.includes(player)) {
+          sourceRotationIndex = rIdx;
+          sourceCourtIndex = cIdx;
+          sourceTeamType = 'team1';
+          break;
+        }
+        if (court.team2.includes(player)) {
+          sourceRotationIndex = rIdx;
+          sourceCourtIndex = cIdx;
+          sourceTeamType = 'team2';
+          break;
+        }
+      }
+      if (sourceTeamType) break;
+    }
+
+    if (sourceTeamType === null || sourceRotationIndex === -1 || sourceCourtIndex === -1) {
+      toast.error("Could not find player's current position");
+      return;
+    }
+
+    const sourceRotation = newRotations[sourceRotationIndex];
+    const sourceCourt = sourceRotation.courts[sourceCourtIndex];
+
+    // Check if target team is already full (2 players)
+    if (targetCourt[targetTeamType].length >= 2) {
+      toast.error("Team is already full (maximum 2 players)");
+      return;
+    }
+
+    // Remove player from source team
+    sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].filter(p => p !== player);
+
+    // Add player to target team
+    targetCourt[targetTeamType] = [...targetCourt[targetTeamType], player];
 
     try {
-      const rotationsToUpdate = [sourceRotation.id, targetRotation.id];
-      for (const rotationId of rotationsToUpdate) {
-        const { error: rotationError } = await supabase
-          .from('rotations')
-          .update({ manually_modified: true })
-          .eq('id', rotationId);
+      // Update source court
+      const { error: sourceError } = await supabase
+        .from('court_assignments')
+        .update({
+          team1_players: sourceCourt.team1,
+          team2_players: sourceCourt.team2
+        })
+        .eq('rotation_id', sourceRotation.id)
+        .eq('court_number', sourceCourtIndex + 1);
 
-        if (rotationError) throw rotationError;
-      }
+      if (sourceError) throw sourceError;
 
-      const updates = [
-        {
-          rotation_id: sourceRotation.id,
-          court_number: dragData.courtIndex + 1,
-          data: {
-            team1_players: sourceCourt.team1,
-            team2_players: sourceCourt.team2
-          }
-        },
-        {
-          rotation_id: targetRotation.id,
-          court_number: targetCourtIndex + 1,
-          data: {
-            team1_players: targetCourt.team1,
-            team2_players: targetCourt.team2
-          }
-        }
-      ];
+      // Update target court
+      const { error: targetError } = await supabase
+        .from('court_assignments')
+        .update({
+          team1_players: targetCourt.team1,
+          team2_players: targetCourt.team2
+        })
+        .eq('rotation_id', targetRotation.id)
+        .eq('court_number', targetCourtIndex + 1);
 
-      for (const update of updates) {
-        const { error: courtError } = await supabase
-          .from('court_assignments')
-          .update(update.data)
-          .eq('rotation_id', update.rotation_id)
-          .eq('court_number', update.court_number);
+      if (targetError) throw targetError;
 
-        if (courtError) throw courtError;
-      }
+      // Update rotations flag
+      const { error: rotationError } = await supabase
+        .from('rotations')
+        .update({ manually_modified: true })
+        .eq('id', sourceRotation.id);
 
-      toast.success("Player positions updated successfully");
+      if (rotationError) throw rotationError;
+
+      // Force a re-render with new array
+      setLocalRotations([...newRotations]);
+      toast.success("Player position updated successfully");
     } catch (error) {
       console.error('Error updating player positions:', error);
       toast.error("Failed to update player positions");
-      setLocalRotations(rotations);
+      setLocalRotations(rotations); // Reset to original state
     }
   };
 
   const handleSubmitScore = async (rotationIndex: number, courtIndex: number, court: Court) => {
-    const key = `${rotationIndex}-${courtIndex}`;
+    const key = `${rotationIndex}-${courtIdx}`;
     const scoreData = scores[key];
 
     if (!scoreData?.team1 || !scoreData?.team2) {
