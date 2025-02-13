@@ -105,7 +105,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
     }));
   };
 
-  const handleDragStart = (
+  const handleDragStart = async (
     e: React.DragEvent,
     data: {
       player: string;
@@ -115,6 +115,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
     }
   ) => {
     setDragData(data);
+    await handleDrop(e, data.teamType, data.courtIndex, data.rotationIndex);
   };
 
   const handleDrop = async (
@@ -320,6 +321,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                             courtIndex={courtIdx}
                             rotationIndex={idx}
                             onDragStart={handleDragStart}
+                            allPlayers={Object.values(players)}
                           />
                         ))}
                       </span>
@@ -340,6 +342,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                             courtIndex={courtIdx}
                             rotationIndex={idx}
                             onDragStart={handleDragStart}
+                            allPlayers={Object.values(players)}
                           />
                         ))}
                       </span>
