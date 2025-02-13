@@ -14,7 +14,7 @@ interface TeamDisplayProps {
     courtIndex: number;
     rotationIndex: number;
   }) => void;
-  court: Court;
+  allCourts: Court[];
   playerGenders: { [key: string]: string };
 }
 
@@ -25,11 +25,13 @@ const TeamDisplay = ({
   courtIndex,
   rotationIndex,
   onDragStart,
-  court,
+  allCourts,
   playerGenders,
 }: TeamDisplayProps) => {
-  // Get all players in the current court
-  const currentRotationPlayers = [...court.team1, ...court.team2];
+  // Get all players from all courts in the current rotation
+  const allRotationPlayers = allCourts.reduce((acc: string[], court) => {
+    return [...acc, ...court.team1, ...court.team2];
+  }, []);
 
   return (
     <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
@@ -44,7 +46,7 @@ const TeamDisplay = ({
             courtIndex={courtIndex}
             rotationIndex={rotationIndex}
             onDragStart={onDragStart}
-            currentRotationPlayers={currentRotationPlayers}
+            currentRotationPlayers={allRotationPlayers}
           />
         ))}
       </span>

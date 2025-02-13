@@ -19,6 +19,7 @@ interface CourtCardProps {
   scores: { team1: string; team2: string };
   onScoreChange: (team: 'team1' | 'team2', value: string) => void;
   onSubmitScore: () => void;
+  allCourts: Court[];
 }
 
 const CourtCard = ({
@@ -31,6 +32,7 @@ const CourtCard = ({
   scores,
   onScoreChange,
   onSubmitScore,
+  allCourts,
 }: CourtCardProps) => {
   return (
     <Card className="p-4 border-2 border-accent/20 bg-white">
@@ -45,7 +47,7 @@ const CourtCard = ({
           courtIndex={courtIndex}
           rotationIndex={rotationIndex}
           onDragStart={onDragStart}
-          court={court}
+          allCourts={allCourts}
           playerGenders={playerGenders}
         />
         <TeamDisplay
@@ -55,7 +57,7 @@ const CourtCard = ({
           courtIndex={courtIndex}
           rotationIndex={rotationIndex}
           onDragStart={onDragStart}
-          court={court}
+          allCourts={allCourts}
           playerGenders={playerGenders}
         />
 

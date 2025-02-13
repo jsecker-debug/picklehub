@@ -131,18 +131,18 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     if (playerToSwap) {
       newSourceTeamPlayers[draggedPlayerIndex] = playerToSwap;
-    }
-
-    if (targetIndex < newTargetTeamPlayers.length) {
-      newTargetTeamPlayers[targetIndex] = dragData.player;
+      if (targetIndex < newTargetTeamPlayers.length) {
+        newTargetTeamPlayers[targetIndex] = dragData.player;
+      }
     } else {
+      newSourceTeamPlayers.splice(draggedPlayerIndex, 1);
       newTargetTeamPlayers.push(dragData.player);
     }
 
     sourceCourt[dragData.teamType] = newSourceTeamPlayers;
     targetCourt[targetTeamType] = newTargetTeamPlayers;
 
-    setLocalRotations(newRotations);
+    setLocalRotations([...newRotations]);
 
     try {
       const rotationsToUpdate = [sourceRotation.id, targetRotation.id];
@@ -273,6 +273,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                   scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
                   onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
                   onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
+                  allCourts={rotation.courts}
                 />
               ))}
             </div>
