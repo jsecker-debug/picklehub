@@ -1,3 +1,4 @@
+
 export interface Court {
   team1: string[];
   team2: string[];
@@ -6,6 +7,7 @@ export interface Court {
 export interface Rotation {
   courts: Court[];
   resters: string[];
+  id?: string;
 }
 
 export interface Participant {

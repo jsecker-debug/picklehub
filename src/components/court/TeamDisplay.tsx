@@ -1,5 +1,6 @@
 
 import DraggablePlayer from "../DraggablePlayer";
+import { Court } from "@/types/scheduler";
 
 interface TeamDisplayProps {
   label: string;
@@ -13,7 +14,7 @@ interface TeamDisplayProps {
     courtIndex: number;
     rotationIndex: number;
   }) => void;
-  allPlayers: { name: string; gender: string }[];
+  court: Court;
   playerGenders: { [key: string]: string };
 }
 
@@ -24,9 +25,12 @@ const TeamDisplay = ({
   courtIndex,
   rotationIndex,
   onDragStart,
-  allPlayers,
+  court,
   playerGenders,
 }: TeamDisplayProps) => {
+  // Get all players in the current court
+  const currentRotationPlayers = [...court.team1, ...court.team2];
+
   return (
     <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
       <span className="text-sm text-gray-600">{label}:</span>
@@ -40,7 +44,7 @@ const TeamDisplay = ({
             courtIndex={courtIndex}
             rotationIndex={rotationIndex}
             onDragStart={onDragStart}
-            allPlayers={allPlayers}
+            currentRotationPlayers={currentRotationPlayers}
           />
         ))}
       </span>

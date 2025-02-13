@@ -14,7 +14,6 @@ interface CourtCardProps {
     courtIndex: number;
     rotationIndex: number;
   }) => void;
-  allPlayers: { name: string; gender: string }[];
   playerGenders: { [key: string]: string };
   showScores: boolean;
   scores: { team1: string; team2: string };
@@ -27,7 +26,6 @@ const CourtCard = ({
   courtIndex,
   rotationIndex,
   onDragStart,
-  allPlayers,
   playerGenders,
   showScores,
   scores,
@@ -47,7 +45,7 @@ const CourtCard = ({
           courtIndex={courtIndex}
           rotationIndex={rotationIndex}
           onDragStart={onDragStart}
-          allPlayers={allPlayers}
+          court={court}
           playerGenders={playerGenders}
         />
         <TeamDisplay
@@ -57,7 +55,7 @@ const CourtCard = ({
           courtIndex={courtIndex}
           rotationIndex={rotationIndex}
           onDragStart={onDragStart}
-          allPlayers={allPlayers}
+          court={court}
           playerGenders={playerGenders}
         />
 

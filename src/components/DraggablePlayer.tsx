@@ -26,7 +26,7 @@ interface DraggablePlayerProps {
     courtIndex: number;
     rotationIndex: number;
   }) => void;
-  allPlayers: { name: string; gender: string }[];
+  currentRotationPlayers: string[];
 }
 
 const DraggablePlayer = ({ 
@@ -36,7 +36,7 @@ const DraggablePlayer = ({
   courtIndex, 
   rotationIndex,
   onDragStart,
-  allPlayers 
+  currentRotationPlayers,
 }: DraggablePlayerProps) => {
   const [open, setOpen] = useState(false);
 
@@ -66,16 +66,15 @@ const DraggablePlayer = ({
               className="bg-white z-50"
               align="end"
             >
-              {allPlayers
-                .filter(p => p.name !== player)
+              {currentRotationPlayers
+                .filter(p => p !== player)
                 .map((p) => (
                   <DropdownMenuItem
-                    key={p.name}
-                    onClick={() => handleSwap(p.name)}
+                    key={p}
+                    onClick={() => handleSwap(p)}
                     className="flex items-center gap-2"
                   >
-                    <span>{p.name}</span>
-                    <span className="text-xs text-gray-500">({p.gender})</span>
+                    <span>{p}</span>
                   </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>
