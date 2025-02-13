@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -267,7 +266,6 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                   courtIndex={courtIdx}
                   rotationIndex={idx}
                   onDragStart={handleDragStart}
-                  allPlayers={Object.values(players)}
                   playerGenders={Object.fromEntries(
                     Object.entries(players).map(([name, data]) => [name, data.gender])
                   )}
