@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -12,10 +13,15 @@ interface CourtDisplayProps {
   sessionStatus?: string;
 }
 
+interface PlayerData {
+  name: string;
+  gender: string;
+}
+
 const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: CourtDisplayProps) => {
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
   const [localRotations, setLocalRotations] = useState<Rotation[]>(rotations);
-  const [players, setPlayers] = useState<{ [key: string]: { name: string; gender: string } }>({});
+  const [players, setPlayers] = useState<{ [key: string]: PlayerData }>({});
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -28,10 +34,10 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
         return;
       }
 
-      const playersMap = data.reduce((acc: { [key: string]: { name: string; gender: string } }, player) => {
+      const playersMap = data.reduce<{ [key: string]: PlayerData }>((acc, player) => {
         acc[player.name] = { name: player.name, gender: player.gender };
         return acc;
-      });
+      }, {});
 
       setPlayers(playersMap);
     };
