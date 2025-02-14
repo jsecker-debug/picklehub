@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -32,7 +31,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       const playersMap = data.reduce((acc: { [key: string]: { name: string; gender: string } }, player) => {
         acc[player.name] = { name: player.name, gender: player.gender };
         return acc;
-      }, {});
+      });
 
       setPlayers(playersMap);
     };
@@ -64,7 +63,6 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       
       if (error) throw error;
 
-      // Update local rotations with IDs
       const updatedRotations = rotations.map((rotation, index) => ({
         ...rotation,
         id: data.find(r => r.rotation_number === index + 1)?.id
@@ -101,12 +99,6 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       rotationIndex: number;
     }
   ) => {
-    // Prevent dragging if no session ID
-    if (!sessionId) {
-      toast.error("Cannot modify teams without a valid session");
-      return;
-    }
-
     await handleSwap(data.player, data.teamType, data.courtIndex, data.rotationIndex);
   };
 
@@ -130,7 +122,6 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       return;
     }
 
-    // Find the player's current position
     let sourceRotationIndex = -1;
     let sourceCourtIndex = -1;
     let sourceTeamType: 'team1' | 'team2' | null = null;
@@ -160,62 +151,59 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       return;
     }
 
-    const sourceRotation = newRotations[sourceRotationIndex];
-    const sourceCourt = sourceRotation.courts[sourceCourtIndex];
+    const sourceCourt = newRotations[sourceRotationIndex].courts[sourceCourtIndex];
 
-    // Check if target team is already full (2 players)
     if (targetCourt[targetTeamType].length >= 2) {
       toast.error("Team is already full (maximum 2 players)");
       return;
     }
 
-    // Remove player from source team
     sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].filter(p => p !== player);
-
-    // Add player to target team
     targetCourt[targetTeamType] = [...targetCourt[targetTeamType], player];
 
-    try {
-      // Update source court
-      const { error: sourceError } = await supabase
-        .from('court_assignments')
-        .update({
-          team1_players: sourceCourt.team1,
-          team2_players: sourceCourt.team2
-        })
-        .eq('rotation_id', sourceRotation.id)
-        .eq('court_number', sourceCourtIndex + 1);
+    if (sessionId && targetRotation.id) {
+      try {
+        const { error: sourceError } = await supabase
+          .from('court_assignments')
+          .update({
+            team1_players: sourceCourt.team1,
+            team2_players: sourceCourt.team2
+          })
+          .eq('rotation_id', newRotations[sourceRotationIndex].id)
+          .eq('court_number', sourceCourtIndex + 1);
 
-      if (sourceError) throw sourceError;
+        if (sourceError) throw sourceError;
 
-      // Update target court
-      const { error: targetError } = await supabase
-        .from('court_assignments')
-        .update({
-          team1_players: targetCourt.team1,
-          team2_players: targetCourt.team2
-        })
-        .eq('rotation_id', targetRotation.id)
-        .eq('court_number', targetCourtIndex + 1);
+        const { error: targetError } = await supabase
+          .from('court_assignments')
+          .update({
+            team1_players: targetCourt.team1,
+            team2_players: targetCourt.team2
+          })
+          .eq('rotation_id', targetRotation.id)
+          .eq('court_number', targetCourtIndex + 1);
 
-      if (targetError) throw targetError;
+        if (targetError) throw targetError;
 
-      // Update rotations flag
-      const { error: rotationError } = await supabase
-        .from('rotations')
-        .update({ manually_modified: true })
-        .eq('id', sourceRotation.id);
+        const { error: rotationError } = await supabase
+          .from('rotations')
+          .update({ manually_modified: true })
+          .eq('id', targetRotation.id);
 
-      if (rotationError) throw rotationError;
+        if (rotationError) throw rotationError;
 
-      // Force a re-render with new array
-      setLocalRotations([...newRotations]);
-      toast.success("Player position updated successfully");
-    } catch (error) {
-      console.error('Error updating player positions:', error);
-      toast.error("Failed to update player positions");
-      setLocalRotations(rotations); // Reset to original state
+        toast.success("Player position updated successfully");
+      } catch (error) {
+        console.error('Error updating player positions:', error);
+        toast.error("Failed to update player positions");
+        setLocalRotations(rotations); // Reset to original state
+        return;
+      }
+    } else {
+      toast.success("Player position updated");
     }
+
+    setLocalRotations([...newRotations]);
   };
 
   const handleSubmitScore = async (rotationIndex: number, courtIndex: number, court: Court) => {
