@@ -219,7 +219,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   };
 
   const handleSubmitScore = async (rotationIndex: number, courtIndex: number, court: Court) => {
-    const key = `${rotationIndex}-${courtIdx}`;
+    const key = `${rotationIndex}-${courtIndex}`;
     const scoreData = scores[key];
 
     if (!scoreData?.team1 || !scoreData?.team2) {
