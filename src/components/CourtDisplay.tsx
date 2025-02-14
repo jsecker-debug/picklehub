@@ -116,81 +116,86 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   ) => {
     const newRotations = [...localRotations];
     const targetRotation = newRotations[targetRotationIndex];
-
-    if (!targetRotation || !targetRotation.id) {
-      toast.error("Invalid rotation data");
-      return;
-    }
-
     const targetCourt = targetRotation.courts[targetCourtIndex];
-    if (!targetCourt) {
-      toast.error("Invalid court data");
-      return;
-    }
 
-    let sourceRotationIndex = -1;
+    // Find the player's current position within the SAME rotation
     let sourceCourtIndex = -1;
     let sourceTeamType: 'team1' | 'team2' | null = null;
+    let isPlayerResting = false;
 
-    for (let rIdx = 0; rIdx < newRotations.length; rIdx++) {
-      const rotation = newRotations[rIdx];
-      for (let cIdx = 0; cIdx < rotation.courts.length; cIdx++) {
-        const court = rotation.courts[cIdx];
-        if (court.team1.includes(player)) {
-          sourceRotationIndex = rIdx;
-          sourceCourtIndex = cIdx;
-          sourceTeamType = 'team1';
-          break;
-        }
-        if (court.team2.includes(player)) {
-          sourceRotationIndex = rIdx;
-          sourceCourtIndex = cIdx;
-          sourceTeamType = 'team2';
-          break;
-        }
+    // Check courts in the current rotation
+    for (let cIdx = 0; cIdx < targetRotation.courts.length; cIdx++) {
+      const court = targetRotation.courts[cIdx];
+      if (court.team1.includes(player)) {
+        sourceCourtIndex = cIdx;
+        sourceTeamType = 'team1';
+        break;
       }
-      if (sourceTeamType) break;
+      if (court.team2.includes(player)) {
+        sourceCourtIndex = cIdx;
+        sourceTeamType = 'team2';
+        break;
+      }
     }
 
-    if (sourceTeamType === null || sourceRotationIndex === -1 || sourceCourtIndex === -1) {
-      toast.error("Could not find player's current position");
+    // Check if player is resting
+    if (!sourceTeamType) {
+      isPlayerResting = targetRotation.resters.includes(player);
+    }
+
+    if (!sourceTeamType && !isPlayerResting) {
+      toast.error("Could not find player's current position in this rotation");
       return;
     }
 
-    const sourceCourt = newRotations[sourceRotationIndex].courts[sourceCourtIndex];
-
+    // Check if target team is already full (2 players)
     if (targetCourt[targetTeamType].length >= 2) {
       toast.error("Team is already full (maximum 2 players)");
       return;
     }
 
-    sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].filter(p => p !== player);
-    targetCourt[targetTeamType] = [...targetCourt[targetTeamType], player];
+    // Handle the swap
+    if (isPlayerResting) {
+      // Remove from resters
+      targetRotation.resters = targetRotation.resters.filter(p => p !== player);
+      // Add to target team
+      targetCourt[targetTeamType].push(player);
+    } else if (sourceTeamType) {
+      const sourceCourt = targetRotation.courts[sourceCourtIndex];
+      // Remove from source team
+      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].filter(p => p !== player);
+      // Add to target team
+      targetCourt[targetTeamType].push(player);
+    }
 
     if (sessionId && targetRotation.id) {
       try {
-        const { error: sourceError } = await supabase
-          .from('court_assignments')
+        // Update all courts in the rotation
+        for (let i = 0; i < targetRotation.courts.length; i++) {
+          const court = targetRotation.courts[i];
+          const { error } = await supabase
+            .from('court_assignments')
+            .update({
+              team1_players: court.team1,
+              team2_players: court.team2
+            })
+            .eq('rotation_id', targetRotation.id)
+            .eq('court_number', i + 1);
+
+          if (error) throw error;
+        }
+
+        // Update resters
+        const { error: restersError } = await supabase
+          .from('roation_resters')
           .update({
-            team1_players: sourceCourt.team1,
-            team2_players: sourceCourt.team2
+            resting_players: targetRotation.resters
           })
-          .eq('rotation_id', newRotations[sourceRotationIndex].id)
-          .eq('court_number', sourceCourtIndex + 1);
+          .eq('rotation_id', targetRotation.id);
 
-        if (sourceError) throw sourceError;
+        if (restersError) throw restersError;
 
-        const { error: targetError } = await supabase
-          .from('court_assignments')
-          .update({
-            team1_players: targetCourt.team1,
-            team2_players: targetCourt.team2
-          })
-          .eq('rotation_id', targetRotation.id)
-          .eq('court_number', targetCourtIndex + 1);
-
-        if (targetError) throw targetError;
-
+        // Update rotation flag
         const { error: rotationError } = await supabase
           .from('rotations')
           .update({ manually_modified: true })
