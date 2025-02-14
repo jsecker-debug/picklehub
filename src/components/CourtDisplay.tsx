@@ -1,84 +1,20 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import CourtCard from "./court/CourtCard";
-import { Court, Rotation } from "@/types/scheduler";
-
-interface CourtDisplayProps {
-  rotations: Rotation[];
-  isKingCourt: boolean;
-  sessionId?: string;
-  sessionStatus?: string;
-}
-
-interface PlayerData {
-  name: string;
-  gender: string;
-}
+import RestingPlayers from "./court/RestingPlayers";
+import { usePlayersData } from "@/hooks/usePlayersData";
+import { useRotationData } from "@/hooks/useRotationData";
+import { handlePlayerSwap, updateRotationInDatabase } from "@/services/playerSwapService";
+import { Court } from "@/types/scheduler";
+import { CourtDisplayProps, SwapData } from "@/types/court-display";
 
 const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: CourtDisplayProps) => {
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
-  const [localRotations, setLocalRotations] = useState<Rotation[]>(rotations);
-  const [players, setPlayers] = useState<{ [key: string]: PlayerData }>({});
-
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      const { data, error } = await supabase
-        .from('participants')
-        .select('name, gender');
-      
-      if (error) {
-        console.error('Error fetching players:', error);
-        return;
-      }
-
-      const playersMap = data.reduce<{ [key: string]: PlayerData }>((acc, player) => {
-        acc[player.name] = { name: player.name, gender: player.gender };
-        return acc;
-      }, {});
-
-      setPlayers(playersMap);
-    };
-
-    fetchPlayers();
-  }, []);
-
-  useEffect(() => {
-    const fetchRotationIds = async () => {
-      if (!sessionId) return;
-      
-      const { data, error } = await supabase
-        .from('rotations')
-        .select(`
-          id,
-          is_king_court,
-          rotation_number,
-          court_assignments (
-            court_number,
-            team1_players,
-            team2_players
-          ),
-          roation_resters (
-            resting_players
-          )
-        `)
-        .eq('session_id', sessionId)
-        .order('rotation_number', { ascending: true });
-      
-      if (error) throw error;
-
-      const updatedRotations = rotations.map((rotation, index) => ({
-        ...rotation,
-        id: data.find(r => r.rotation_number === index + 1)?.id
-      }));
-      
-      setLocalRotations(updatedRotations);
-    };
-
-    fetchRotationIds();
-  }, [sessionId, rotations]);
+  const players = usePlayersData();
+  const { localRotations, setLocalRotations } = useRotationData(rotations, sessionId);
 
   const handleScoreChange = (
     rotationIndex: number,
@@ -96,127 +32,27 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
     }));
   };
 
-  const handleDragStart = async (
-    e: React.DragEvent,
-    data: {
-      player: string;
-      teamType: 'team1' | 'team2';
-      courtIndex: number;
-      rotationIndex: number;
-    }
-  ) => {
-    await handleSwap(data.player, data.teamType, data.courtIndex, data.rotationIndex);
-  };
-
-  const handleSwap = async (
-    selectedPlayer: string, // player selected from dropdown
-    targetTeamType: 'team1' | 'team2',
-    targetCourtIndex: number,
-    targetRotationIndex: number
-  ) => {
+  const handleDragStart = async (e: React.DragEvent, data: SwapData) => {
     const newRotations = [...localRotations];
-    const targetRotation = newRotations[targetRotationIndex];
-    const targetCourt = targetRotation.courts[targetCourtIndex];
+    const targetRotation = newRotations[data.rotationIndex];
+    
+    const updatedRotation = handlePlayerSwap(
+      data.player,
+      data.teamType,
+      data.courtIndex,
+      targetRotation
+    );
 
-    // Find the selected player's current position
-    let sourceCourtIndex = -1;
-    let sourceTeamType: 'team1' | 'team2' | null = null;
-    let isSelectedPlayerResting = false;
-
-    // Check courts in the current rotation for the selected player
-    for (let cIdx = 0; cIdx < targetRotation.courts.length; cIdx++) {
-      const court = targetRotation.courts[cIdx];
-      if (court.team1.includes(selectedPlayer)) {
-        sourceCourtIndex = cIdx;
-        sourceTeamType = 'team1';
-        break;
-      }
-      if (court.team2.includes(selectedPlayer)) {
-        sourceCourtIndex = cIdx;
-        sourceTeamType = 'team2';
-        break;
-      }
-    }
-
-    // Check if selected player is resting
-    if (!sourceTeamType) {
-      isSelectedPlayerResting = targetRotation.resters.includes(selectedPlayer);
-    }
-
-    if (!sourceTeamType && !isSelectedPlayerResting) {
-      toast.error("Could not find selected player's position in this rotation");
-      return;
-    }
-
-    // Get the player that was clicked (to be swapped)
-    const clickedPlayer = targetCourt[targetTeamType][0]; // Assuming we're clicking on a player to swap
-
-    // Perform the swap
-    if (isSelectedPlayerResting) {
-      // Remove selected player from resters
-      targetRotation.resters = targetRotation.resters.filter(p => p !== selectedPlayer);
-      // Add clicked player to resters
-      targetRotation.resters.push(clickedPlayer);
-      // Update target team
-      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
-        p === clickedPlayer ? selectedPlayer : p
-      );
-    } else if (sourceTeamType) {
-      const sourceCourt = targetRotation.courts[sourceCourtIndex];
-      
-      // Update source team - replace selected player with clicked player
-      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
-        p === selectedPlayer ? clickedPlayer : p
-      );
-
-      // Update target team - replace clicked player with selected player
-      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
-        p === clickedPlayer ? selectedPlayer : p
-      );
-    }
+    if (!updatedRotation) return;
 
     if (sessionId && targetRotation.id) {
-      try {
-        // Update all courts in the rotation
-        for (let i = 0; i < targetRotation.courts.length; i++) {
-          const court = targetRotation.courts[i];
-          const { error } = await supabase
-            .from('court_assignments')
-            .update({
-              team1_players: court.team1,
-              team2_players: court.team2
-            })
-            .eq('rotation_id', targetRotation.id)
-            .eq('court_number', i + 1);
-
-          if (error) throw error;
-        }
-
-        // Update resters
-        const { error: restersError } = await supabase
-          .from('roation_resters')
-          .update({
-            resting_players: targetRotation.resters
-          })
-          .eq('rotation_id', targetRotation.id);
-
-        if (restersError) throw restersError;
-
-        // Update rotation flag
-        const { error: rotationError } = await supabase
-          .from('rotations')
-          .update({ manually_modified: true })
-          .eq('id', targetRotation.id);
-
-        if (rotationError) throw rotationError;
-
-        toast.success("Player position updated successfully");
-      } catch (error) {
-        console.error('Error updating player positions:', error);
+      const success = await updateRotationInDatabase(targetRotation, sessionId);
+      if (!success) {
         toast.error("Failed to update player positions");
-        setLocalRotations(rotations); // Reset to original state
+        setLocalRotations(rotations);
         return;
       }
+      toast.success("Player position updated successfully");
     } else {
       toast.success("Player position updated");
     }
@@ -310,20 +146,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
               ))}
             </div>
 
-            {rotation.resters.length > 0 && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-600">Resting:</span>{" "}
-                <span>
-                  {rotation.resters.map((player, idx) => (
-                    <span key={idx} className="inline-flex items-center gap-1">
-                      {player}
-                      <span className="text-xs text-gray-500">({players[player]?.gender || 'M'})</span>
-                      {idx < rotation.resters.length - 1 ? ", " : ""}
-                    </span>
-                  ))}
-                </span>
-              </div>
-            )}
+            <RestingPlayers resters={rotation.resters} players={players} />
           </Card>
         ))}
       </div>
