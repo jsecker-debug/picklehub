@@ -109,7 +109,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   };
 
   const handleSwap = async (
-    player: string,
+    selectedPlayer: string, // player selected from dropdown
     targetTeamType: 'team1' | 'team2',
     targetCourtIndex: number,
     targetRotationIndex: number
@@ -118,54 +118,61 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
     const targetRotation = newRotations[targetRotationIndex];
     const targetCourt = targetRotation.courts[targetCourtIndex];
 
-    // Find the player's current position within the SAME rotation
+    // Find the selected player's current position
     let sourceCourtIndex = -1;
     let sourceTeamType: 'team1' | 'team2' | null = null;
-    let isPlayerResting = false;
+    let isSelectedPlayerResting = false;
 
-    // Check courts in the current rotation
+    // Check courts in the current rotation for the selected player
     for (let cIdx = 0; cIdx < targetRotation.courts.length; cIdx++) {
       const court = targetRotation.courts[cIdx];
-      if (court.team1.includes(player)) {
+      if (court.team1.includes(selectedPlayer)) {
         sourceCourtIndex = cIdx;
         sourceTeamType = 'team1';
         break;
       }
-      if (court.team2.includes(player)) {
+      if (court.team2.includes(selectedPlayer)) {
         sourceCourtIndex = cIdx;
         sourceTeamType = 'team2';
         break;
       }
     }
 
-    // Check if player is resting
+    // Check if selected player is resting
     if (!sourceTeamType) {
-      isPlayerResting = targetRotation.resters.includes(player);
+      isSelectedPlayerResting = targetRotation.resters.includes(selectedPlayer);
     }
 
-    if (!sourceTeamType && !isPlayerResting) {
-      toast.error("Could not find player's current position in this rotation");
+    if (!sourceTeamType && !isSelectedPlayerResting) {
+      toast.error("Could not find selected player's position in this rotation");
       return;
     }
 
-    // Check if target team is already full (2 players)
-    if (targetCourt[targetTeamType].length >= 2) {
-      toast.error("Team is already full (maximum 2 players)");
-      return;
-    }
+    // Get the player that was clicked (to be swapped)
+    const clickedPlayer = targetCourt[targetTeamType][0]; // Assuming we're clicking on a player to swap
 
-    // Handle the swap
-    if (isPlayerResting) {
-      // Remove from resters
-      targetRotation.resters = targetRotation.resters.filter(p => p !== player);
-      // Add to target team
-      targetCourt[targetTeamType].push(player);
+    // Perform the swap
+    if (isSelectedPlayerResting) {
+      // Remove selected player from resters
+      targetRotation.resters = targetRotation.resters.filter(p => p !== selectedPlayer);
+      // Add clicked player to resters
+      targetRotation.resters.push(clickedPlayer);
+      // Update target team
+      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
+        p === clickedPlayer ? selectedPlayer : p
+      );
     } else if (sourceTeamType) {
       const sourceCourt = targetRotation.courts[sourceCourtIndex];
-      // Remove from source team
-      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].filter(p => p !== player);
-      // Add to target team
-      targetCourt[targetTeamType].push(player);
+      
+      // Update source team - replace selected player with clicked player
+      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
+        p === selectedPlayer ? clickedPlayer : p
+      );
+
+      // Update target team - replace clicked player with selected player
+      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
+        p === clickedPlayer ? selectedPlayer : p
+      );
     }
 
     if (sessionId && targetRotation.id) {
