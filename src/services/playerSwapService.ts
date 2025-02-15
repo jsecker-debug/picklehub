@@ -88,6 +88,12 @@ export const handlePlayerSwap = (
     }
   }
 
+  // If we can't find the selected player's position and they're not resting, return error
+  if (!sourceTeamType && !isSelectedPlayerResting) {
+    toast.error("Could not find selected player's position");
+    return null;
+  }
+
   // Get target player and validate swap
   let targetPlayer: string | null = null;
   let isTargetPlayerResting = targetCourtIndex === -1;
@@ -107,8 +113,11 @@ export const handlePlayerSwap = (
       return null;
     }
 
-    // Get the player from target position
-    targetPlayer = targetCourt[targetTeamType][0];
+    // Verify the target position is valid
+    if (!targetCourt[targetTeamType] || targetCourt[targetTeamType].length === 0) {
+      toast.error("Invalid target position");
+      return null;
+    }
 
     // Prevent swapping to same team
     if (sourceCourtIndex === targetCourtIndex && sourceTeamType === targetTeamType) {
@@ -122,10 +131,19 @@ export const handlePlayerSwap = (
       toast.error("Player cannot be on the same team twice");
       return null;
     }
+
+    // Get the target player (the one we're swapping with)
+    targetPlayer = targetCourt[targetTeamType][0];
   }
 
   if (!targetPlayer) {
     toast.error("No valid target player found for swap");
+    return null;
+  }
+
+  // Additional validation to ensure we're not swapping a player with themselves
+  if (targetPlayer === selectedPlayer) {
+    toast.error("Cannot swap a player with themselves");
     return null;
   }
 
@@ -141,30 +159,41 @@ export const handlePlayerSwap = (
     } else {
       // Move target player to resters and place selected player in their position
       const targetCourt = updatedRotation.courts[targetCourtIndex];
+      const targetPlayerIndex = targetCourt[targetTeamType].indexOf(targetPlayer);
+      if (targetPlayerIndex === -1) {
+        toast.error("Target player not found in specified position");
+        return null;
+      }
       updatedRotation.resters.push(targetPlayer);
-      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
-        p === targetPlayer ? selectedPlayer : p
-      );
+      targetCourt[targetTeamType][targetPlayerIndex] = selectedPlayer;
     }
   } else if (sourceTeamType) {
     const sourceCourt = updatedRotation.courts[sourceCourtIndex];
     
     if (isTargetPlayerResting) {
       // Move selected player to resters and target player to court
+      const sourcePlayerIndex = sourceCourt[sourceTeamType].indexOf(selectedPlayer);
+      if (sourcePlayerIndex === -1) {
+        toast.error("Selected player not found in specified position");
+        return null;
+      }
       updatedRotation.resters = updatedRotation.resters.filter(p => p !== targetPlayer);
-      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
-        p === selectedPlayer ? targetPlayer : p
-      );
+      sourceCourt[sourceTeamType][sourcePlayerIndex] = targetPlayer;
       updatedRotation.resters.push(selectedPlayer);
     } else {
       // Standard court-to-court swap
       const targetCourt = updatedRotation.courts[targetCourtIndex];
-      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
-        p === selectedPlayer ? targetPlayer : p
-      );
-      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
-        p === targetPlayer ? selectedPlayer : p
-      );
+      const sourcePlayerIndex = sourceCourt[sourceTeamType].indexOf(selectedPlayer);
+      const targetPlayerIndex = targetCourt[targetTeamType].indexOf(targetPlayer);
+      
+      if (sourcePlayerIndex === -1 || targetPlayerIndex === -1) {
+        toast.error("One or both players not found in specified positions");
+        return null;
+      }
+      
+      // Perform the swap using exact indices
+      sourceCourt[sourceTeamType][sourcePlayerIndex] = targetPlayer;
+      targetCourt[targetTeamType][targetPlayerIndex] = selectedPlayer;
     }
   }
 
