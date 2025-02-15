@@ -18,6 +18,7 @@ export interface SwapData {
   teamType: 'team1' | 'team2';
   courtIndex: number;
   rotationIndex: number;
+  targetPlayer?: string; // Add this field
 }
 
 export interface ScoreData {

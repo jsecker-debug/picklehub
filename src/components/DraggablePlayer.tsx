@@ -1,17 +1,16 @@
 
-import { useState } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Repeat } from "lucide-react";
 
 interface DraggablePlayerProps {
@@ -25,47 +24,46 @@ interface DraggablePlayerProps {
     teamType: 'team1' | 'team2';
     courtIndex: number;
     rotationIndex: number;
+    targetPlayer?: string;
   }) => void;
   currentRotationPlayers: string[];
-  restingPlayers?: string[];
+  restingPlayers: string[];
 }
 
 const DraggablePlayer = ({ 
-  player, 
+  player,
   gender,
-  teamType, 
-  courtIndex, 
+  teamType,
+  courtIndex,
   rotationIndex,
   onDragStart,
   currentRotationPlayers,
-  restingPlayers = [],
+  restingPlayers,
 }: DraggablePlayerProps) => {
-  const [open, setOpen] = useState(false);
-
-  const handleSwap = (targetPlayer: string) => {
-    // Create a mock drag event to use the existing swap logic
+  const handleClick = (targetPlayer: string) => {
+    // Create a mock drag event since we're using clicks
     const mockEvent = new Event('mock') as unknown as React.DragEvent;
     onDragStart(mockEvent, { 
-      player: targetPlayer, 
-      teamType, 
-      courtIndex, 
-      rotationIndex 
+      player,
+      teamType,
+      courtIndex,
+      rotationIndex,
+      targetPlayer
     });
-    setOpen(false);
   };
 
-  // Combine current rotation players and resting players
-  const allAvailablePlayers = [...currentRotationPlayers, ...restingPlayers];
-  
-  // Remove duplicates and filter out the current player
-  const uniquePlayers = [...new Set(allAvailablePlayers)]
-    .filter(p => p !== player);
+  // Combine current players and resting players, excluding the current player
+  const availablePlayers = [...currentRotationPlayers, ...restingPlayers]
+    .filter((p, index, self) => 
+      p !== player && // Exclude current player
+      self.indexOf(p) === index // Remove duplicates
+    );
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <DropdownMenu open={open} onOpenChange={setOpen}>
+          <DropdownMenu>
             <DropdownMenuTrigger className="cursor-pointer select-none hover:bg-gray-100 px-2 py-1 rounded inline-flex items-center gap-1">
               <span>{player}</span>
               <span className="text-xs text-gray-500">({gender})</span>
@@ -75,10 +73,10 @@ const DraggablePlayer = ({
               className="bg-white z-50"
               align="end"
             >
-              {uniquePlayers.map((p) => (
+              {availablePlayers.map((p) => (
                 <DropdownMenuItem
                   key={p}
-                  onClick={() => handleSwap(p)}
+                  onClick={() => handleClick(p)}
                   className="flex items-center gap-2"
                 >
                   <span>{p}</span>

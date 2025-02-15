@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Rotation } from "@/types/scheduler";
@@ -58,7 +57,8 @@ export const handlePlayerSwap = (
   selectedPlayer: string,
   targetTeamType: 'team1' | 'team2',
   targetCourtIndex: number,
-  targetRotation: Rotation
+  targetRotation: Rotation,
+  specifiedTargetPlayer?: string
 ): Rotation | null => {
   // Create a deep copy of the rotation to avoid state mutations
   const updatedRotation = JSON.parse(JSON.stringify(targetRotation));
@@ -95,17 +95,20 @@ export const handlePlayerSwap = (
   }
 
   // Get target player and validate swap
-  let targetPlayer: string | null = null;
+  let targetPlayer = specifiedTargetPlayer;
   let isTargetPlayerResting = targetCourtIndex === -1;
 
+  if (!targetPlayer) {
+    toast.error("No target player specified for swap");
+    return null;
+  }
+
   if (isTargetPlayerResting) {
-    // Target is a resting player
-    if (updatedRotation.resters.length === 0) {
-      toast.error("No resting players to swap with");
+    // Validate target player is actually resting
+    if (!updatedRotation.resters.includes(targetPlayer)) {
+      toast.error("Specified target player is not in resting position");
       return null;
     }
-    // Get first resting player that isn't the selected player
-    targetPlayer = updatedRotation.resters.find(p => p !== selectedPlayer) || null;
   } else {
     const targetCourt = updatedRotation.courts[targetCourtIndex];
     if (!targetCourt) {
@@ -113,9 +116,9 @@ export const handlePlayerSwap = (
       return null;
     }
 
-    // Verify the target position is valid
-    if (!targetCourt[targetTeamType] || targetCourt[targetTeamType].length === 0) {
-      toast.error("Invalid target position");
+    // Verify the target position is valid and contains the specified player
+    if (!targetCourt[targetTeamType] || !targetCourt[targetTeamType].includes(targetPlayer)) {
+      toast.error("Target player not found in specified position");
       return null;
     }
 
@@ -131,14 +134,6 @@ export const handlePlayerSwap = (
       toast.error("Player cannot be on the same team twice");
       return null;
     }
-
-    // Get the target player (the one we're swapping with)
-    targetPlayer = targetCourt[targetTeamType][0];
-  }
-
-  if (!targetPlayer) {
-    toast.error("No valid target player found for swap");
-    return null;
   }
 
   // Additional validation to ensure we're not swapping a player with themselves

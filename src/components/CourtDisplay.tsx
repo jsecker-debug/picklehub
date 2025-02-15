@@ -39,7 +39,8 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       data.player,
       data.teamType,
       data.courtIndex,
-      targetRotation
+      targetRotation,
+      data.targetPlayer // Pass the specified target player
     );
 
     if (!updatedRotation) return;
