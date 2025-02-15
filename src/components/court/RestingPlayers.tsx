@@ -1,5 +1,6 @@
 
 import { PlayerData } from "@/types/court-display";
+import { Court } from "@/types/scheduler"; // Add this import
 import DraggablePlayer from "../DraggablePlayer";
 
 interface RestingPlayersProps {
