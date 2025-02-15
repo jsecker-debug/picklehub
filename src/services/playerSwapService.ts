@@ -9,37 +9,43 @@ export const updateRotationInDatabase = async (
 ) => {
   try {
     // Update all courts in the rotation
-    for (let i = 0; i < targetRotation.courts.length; i++) {
-      const court = targetRotation.courts[i];
-      const { error } = await supabase
+    const updatePromises = targetRotation.courts.map((court, i) => 
+      supabase
         .from('court_assignments')
         .update({
           team1_players: court.team1,
           team2_players: court.team2
         })
         .eq('rotation_id', targetRotation.id)
-        .eq('court_number', i + 1);
-
-      if (error) throw error;
-    }
+        .eq('court_number', i + 1)
+    );
 
     // Update resters
-    const { error: restersError } = await supabase
-      .from('roation_resters')
-      .update({
-        resting_players: targetRotation.resters
-      })
-      .eq('rotation_id', targetRotation.id);
-
-    if (restersError) throw restersError;
+    updatePromises.push(
+      supabase
+        .from('roation_resters')
+        .update({
+          resting_players: targetRotation.resters
+        })
+        .eq('rotation_id', targetRotation.id)
+    );
 
     // Update rotation flag
-    const { error: rotationError } = await supabase
-      .from('rotations')
-      .update({ manually_modified: true })
-      .eq('id', targetRotation.id);
+    updatePromises.push(
+      supabase
+        .from('rotations')
+        .update({ manually_modified: true })
+        .eq('id', targetRotation.id)
+    );
 
-    if (rotationError) throw rotationError;
+    // Wait for all updates to complete
+    const results = await Promise.all(updatePromises);
+    
+    // Check if any updates failed
+    const hasError = results.some(result => result.error);
+    if (hasError) {
+      throw new Error('One or more updates failed');
+    }
 
     return true;
   } catch (error) {
@@ -54,62 +60,88 @@ export const handlePlayerSwap = (
   targetCourtIndex: number,
   targetRotation: Rotation
 ): Rotation | null => {
+  // Create a deep copy of the rotation to avoid state mutations
+  const updatedRotation = JSON.parse(JSON.stringify(targetRotation));
+  
+  // Find the selected player's current position
   let sourceCourtIndex = -1;
   let sourceTeamType: 'team1' | 'team2' | null = null;
   let isSelectedPlayerResting = false;
-  let isTargetPlayerResting = false;
-
-  // Find the selected player's current position
-  for (let cIdx = 0; cIdx < targetRotation.courts.length; cIdx++) {
-    const court = targetRotation.courts[cIdx];
-    if (court.team1.includes(selectedPlayer)) {
-      sourceCourtIndex = cIdx;
-      sourceTeamType = 'team1';
-      break;
-    }
-    if (court.team2.includes(selectedPlayer)) {
-      sourceCourtIndex = cIdx;
-      sourceTeamType = 'team2';
-      break;
-    }
-  }
 
   // Check if selected player is resting
-  if (!sourceTeamType) {
-    isSelectedPlayerResting = targetRotation.resters.includes(selectedPlayer);
-  }
-
-  // Get the target player
-  let targetPlayer: string;
-  if (targetCourtIndex === -1) {
-    // Target is a resting player
-    isTargetPlayerResting = true;
-    targetPlayer = selectedPlayer; // We'll find the actual target player in resters
+  if (updatedRotation.resters.includes(selectedPlayer)) {
+    isSelectedPlayerResting = true;
   } else {
-    const targetCourt = targetRotation.courts[targetCourtIndex];
-    targetPlayer = targetCourt[targetTeamType][0];
+    // Find player in courts
+    for (let i = 0; i < updatedRotation.courts.length; i++) {
+      const court = updatedRotation.courts[i];
+      if (court.team1.includes(selectedPlayer)) {
+        sourceCourtIndex = i;
+        sourceTeamType = 'team1';
+        break;
+      }
+      if (court.team2.includes(selectedPlayer)) {
+        sourceCourtIndex = i;
+        sourceTeamType = 'team2';
+        break;
+      }
+    }
   }
 
-  if (!sourceTeamType && !isSelectedPlayerResting) {
-    toast.error("Could not find selected player's position in this rotation");
+  // Get target player and validate swap
+  let targetPlayer: string | null = null;
+  let isTargetPlayerResting = targetCourtIndex === -1;
+
+  if (isTargetPlayerResting) {
+    // Target is a resting player
+    if (updatedRotation.resters.length === 0) {
+      toast.error("No resting players to swap with");
+      return null;
+    }
+    // Get first resting player that isn't the selected player
+    targetPlayer = updatedRotation.resters.find(p => p !== selectedPlayer) || null;
+  } else {
+    const targetCourt = updatedRotation.courts[targetCourtIndex];
+    if (!targetCourt) {
+      toast.error("Invalid court selected");
+      return null;
+    }
+
+    // Get the player from target position
+    targetPlayer = targetCourt[targetTeamType][0];
+
+    // Prevent swapping to same team
+    if (sourceCourtIndex === targetCourtIndex && sourceTeamType === targetTeamType) {
+      toast.error("Cannot swap player with their own position");
+      return null;
+    }
+
+    // Prevent same player appearing twice on a team
+    const targetTeamPlayers = targetCourt[targetTeamType];
+    if (targetTeamPlayers.includes(selectedPlayer)) {
+      toast.error("Player cannot be on the same team twice");
+      return null;
+    }
+  }
+
+  if (!targetPlayer) {
+    toast.error("No valid target player found for swap");
     return null;
   }
 
-  // Create a deep copy of the rotation to avoid state mutations
-  const updatedRotation = JSON.parse(JSON.stringify(targetRotation));
-
+  // Perform the swap
   if (isSelectedPlayerResting) {
     // Remove selected player from resters
     updatedRotation.resters = updatedRotation.resters.filter(p => p !== selectedPlayer);
     
     if (isTargetPlayerResting) {
-      // Both players are in resters, no court updates needed
+      // Both players are in resters
       updatedRotation.resters = updatedRotation.resters.filter(p => p !== targetPlayer);
       updatedRotation.resters.push(selectedPlayer);
     } else {
       // Move target player to resters and place selected player in their position
-      updatedRotation.resters.push(targetPlayer);
       const targetCourt = updatedRotation.courts[targetCourtIndex];
+      updatedRotation.resters.push(targetPlayer);
       targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
         p === targetPlayer ? selectedPlayer : p
       );
@@ -123,6 +155,7 @@ export const handlePlayerSwap = (
       sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
         p === selectedPlayer ? targetPlayer : p
       );
+      updatedRotation.resters.push(selectedPlayer);
     } else {
       // Standard court-to-court swap
       const targetCourt = updatedRotation.courts[targetCourtIndex];

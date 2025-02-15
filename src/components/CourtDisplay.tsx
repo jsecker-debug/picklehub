@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -21,11 +22,10 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
     team: 'team1' | 'team2',
     value: string
   ) => {
-    const key = `${rotationIndex}-${courtIndex}`;
     setScores(prev => ({
       ...prev,
-      [key]: {
-        ...prev[key],
+      [`${rotationIndex}-${courtIndex}`]: {
+        ...prev[`${rotationIndex}-${courtIndex}`],
         [team]: value
       }
     }));
@@ -44,18 +44,19 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     if (!updatedRotation) return;
 
-    newRotations[data.rotationIndex] = updatedRotation;
-
     if (sessionId && targetRotation.id) {
       const success = await updateRotationInDatabase(updatedRotation, sessionId);
       if (!success) {
         toast.error("Failed to update player positions");
-        setLocalRotations(rotations);
         return;
       }
+      // Update the rotation in our local state after successful DB update
+      newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated successfully");
     } else {
+      // Update local state for non-persisted changes
+      newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated");
     }
