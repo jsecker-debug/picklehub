@@ -16,6 +16,7 @@ interface TeamDisplayProps {
   }) => void;
   allCourts: Court[];
   playerGenders: { [key: string]: string };
+  restingPlayers: string[];
 }
 
 const TeamDisplay = ({
@@ -27,6 +28,7 @@ const TeamDisplay = ({
   onDragStart,
   allCourts,
   playerGenders,
+  restingPlayers,
 }: TeamDisplayProps) => {
   // Get all players from all courts in the current rotation
   const allRotationPlayers = allCourts.reduce((acc: string[], court) => {
@@ -47,6 +49,7 @@ const TeamDisplay = ({
             rotationIndex={rotationIndex}
             onDragStart={onDragStart}
             currentRotationPlayers={allRotationPlayers}
+            restingPlayers={restingPlayers}
           />
         ))}
       </span>

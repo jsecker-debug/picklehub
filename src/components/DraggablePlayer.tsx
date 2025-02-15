@@ -27,6 +27,7 @@ interface DraggablePlayerProps {
     rotationIndex: number;
   }) => void;
   currentRotationPlayers: string[];
+  restingPlayers?: string[];
 }
 
 const DraggablePlayer = ({ 
@@ -37,6 +38,7 @@ const DraggablePlayer = ({
   rotationIndex,
   onDragStart,
   currentRotationPlayers,
+  restingPlayers = [],
 }: DraggablePlayerProps) => {
   const [open, setOpen] = useState(false);
 
@@ -52,6 +54,13 @@ const DraggablePlayer = ({
     setOpen(false);
   };
 
+  // Combine current rotation players and resting players
+  const allAvailablePlayers = [...currentRotationPlayers, ...restingPlayers];
+  
+  // Remove duplicates and filter out the current player
+  const uniquePlayers = [...new Set(allAvailablePlayers)]
+    .filter(p => p !== player);
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -66,17 +75,15 @@ const DraggablePlayer = ({
               className="bg-white z-50"
               align="end"
             >
-              {currentRotationPlayers
-                .filter(p => p !== player)
-                .map((p) => (
-                  <DropdownMenuItem
-                    key={p}
-                    onClick={() => handleSwap(p)}
-                    className="flex items-center gap-2"
-                  >
-                    <span>{p}</span>
-                  </DropdownMenuItem>
-                ))}
+              {uniquePlayers.map((p) => (
+                <DropdownMenuItem
+                  key={p}
+                  onClick={() => handleSwap(p)}
+                  className="flex items-center gap-2"
+                >
+                  <span>{p}</span>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </TooltipTrigger>

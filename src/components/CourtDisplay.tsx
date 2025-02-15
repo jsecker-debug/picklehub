@@ -142,6 +142,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                   onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
                   onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
                   allCourts={rotation.courts}
+                  restingPlayers={rotation.resters}
                 />
               ))}
             </div>
