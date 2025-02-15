@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -45,19 +44,21 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
     if (!updatedRotation) return;
 
+    newRotations[data.rotationIndex] = updatedRotation;
+
     if (sessionId && targetRotation.id) {
-      const success = await updateRotationInDatabase(targetRotation, sessionId);
+      const success = await updateRotationInDatabase(updatedRotation, sessionId);
       if (!success) {
         toast.error("Failed to update player positions");
         setLocalRotations(rotations);
         return;
       }
+      setLocalRotations(newRotations);
       toast.success("Player position updated successfully");
     } else {
+      setLocalRotations(newRotations);
       toast.success("Player position updated");
     }
-
-    setLocalRotations([...newRotations]);
   };
 
   const handleSubmitScore = async (rotationIndex: number, courtIndex: number, court: Court) => {
@@ -147,7 +148,13 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
               ))}
             </div>
 
-            <RestingPlayers resters={rotation.resters} players={players} />
+            <RestingPlayers 
+              resters={rotation.resters} 
+              players={players}
+              rotationIndex={idx}
+              onDragStart={handleDragStart}
+              allCourts={rotation.courts}
+            />
           </Card>
         ))}
       </div>

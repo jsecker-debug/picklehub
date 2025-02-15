@@ -57,6 +57,7 @@ export const handlePlayerSwap = (
   let sourceCourtIndex = -1;
   let sourceTeamType: 'team1' | 'team2' | null = null;
   let isSelectedPlayerResting = false;
+  let isTargetPlayerResting = false;
 
   // Find the selected player's current position
   for (let cIdx = 0; cIdx < targetRotation.courts.length; cIdx++) {
@@ -73,8 +74,20 @@ export const handlePlayerSwap = (
     }
   }
 
+  // Check if selected player is resting
   if (!sourceTeamType) {
     isSelectedPlayerResting = targetRotation.resters.includes(selectedPlayer);
+  }
+
+  // Get the target player
+  let targetPlayer: string;
+  if (targetCourtIndex === -1) {
+    // Target is a resting player
+    isTargetPlayerResting = true;
+    targetPlayer = selectedPlayer; // We'll find the actual target player in resters
+  } else {
+    const targetCourt = targetRotation.courts[targetCourtIndex];
+    targetPlayer = targetCourt[targetTeamType][0];
   }
 
   if (!sourceTeamType && !isSelectedPlayerResting) {
@@ -82,24 +95,45 @@ export const handlePlayerSwap = (
     return null;
   }
 
-  const targetCourt = targetRotation.courts[targetCourtIndex];
-  const clickedPlayer = targetCourt[targetTeamType][0];
+  // Create a deep copy of the rotation to avoid state mutations
+  const updatedRotation = JSON.parse(JSON.stringify(targetRotation));
 
   if (isSelectedPlayerResting) {
-    targetRotation.resters = targetRotation.resters.filter(p => p !== selectedPlayer);
-    targetRotation.resters.push(clickedPlayer);
-    targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
-      p === clickedPlayer ? selectedPlayer : p
-    );
+    // Remove selected player from resters
+    updatedRotation.resters = updatedRotation.resters.filter(p => p !== selectedPlayer);
+    
+    if (isTargetPlayerResting) {
+      // Both players are in resters, no court updates needed
+      updatedRotation.resters = updatedRotation.resters.filter(p => p !== targetPlayer);
+      updatedRotation.resters.push(selectedPlayer);
+    } else {
+      // Move target player to resters and place selected player in their position
+      updatedRotation.resters.push(targetPlayer);
+      const targetCourt = updatedRotation.courts[targetCourtIndex];
+      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
+        p === targetPlayer ? selectedPlayer : p
+      );
+    }
   } else if (sourceTeamType) {
-    const sourceCourt = targetRotation.courts[sourceCourtIndex];
-    sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
-      p === selectedPlayer ? clickedPlayer : p
-    );
-    targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
-      p === clickedPlayer ? selectedPlayer : p
-    );
+    const sourceCourt = updatedRotation.courts[sourceCourtIndex];
+    
+    if (isTargetPlayerResting) {
+      // Move selected player to resters and target player to court
+      updatedRotation.resters = updatedRotation.resters.filter(p => p !== targetPlayer);
+      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
+        p === selectedPlayer ? targetPlayer : p
+      );
+    } else {
+      // Standard court-to-court swap
+      const targetCourt = updatedRotation.courts[targetCourtIndex];
+      sourceCourt[sourceTeamType] = sourceCourt[sourceTeamType].map(p => 
+        p === selectedPlayer ? targetPlayer : p
+      );
+      targetCourt[targetTeamType] = targetCourt[targetTeamType].map(p => 
+        p === targetPlayer ? selectedPlayer : p
+      );
+    }
   }
 
-  return targetRotation;
+  return updatedRotation;
 };
