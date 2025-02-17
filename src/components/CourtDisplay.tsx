@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -7,7 +6,7 @@ import CourtCard from "./court/CourtCard";
 import RestingPlayers from "./court/RestingPlayers";
 import { usePlayersData } from "@/hooks/usePlayersData";
 import { useRotationData } from "@/hooks/useRotationData";
-import { handlePlayerSwap, updateRotationInDatabase } from "@/services/playerSwapService";
+import { handlePlayerSwap, updateRotationInDatabase } from "@/services/rotation/playerSwapService";
 import { Court } from "@/types/scheduler";
 import { CourtDisplayProps, SwapData } from "@/types/court-display";
 
