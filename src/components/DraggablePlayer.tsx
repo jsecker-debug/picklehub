@@ -54,25 +54,27 @@ const DraggablePlayer = ({
 
   // Filter available players based on current player's position
   const getAvailablePlayers = () => {
-    // If player is resting, show all players except other resting players
-    if (courtIndex === -1) {
-      return currentRotationPlayers;
-    }
-
-    // Get all players from current rotation and resting
     const allPlayers = [...currentRotationPlayers, ...restingPlayers];
-
-    // Get current court's teams
-    const currentCourt = allPlayers.filter((p, index, self) => {
-      const isOnCurrentTeam = currentRotationPlayers.indexOf(p) !== -1;
+    
+    // Remove duplicates and current player
+    return allPlayers.filter((p, index, self) => {
       const isDuplicate = self.indexOf(p) !== index;
       const isSamePlayer = p === player;
       
-      // Exclude duplicates, current player, and players on the same team
-      return !isDuplicate && !isSamePlayer && isOnCurrentTeam;
+      if (courtIndex === -1) {
+        // If current player is resting, show all players except other resting players
+        return !isDuplicate && !isSamePlayer && !restingPlayers.includes(p);
+      } else {
+        // If current player is on court, show all players except those on the same team
+        const isOnSameTeam = courtIndex !== -1 && 
+          currentRotationPlayers.indexOf(p) !== -1 && 
+          teamType === 'team1' ? 
+          currentRotationPlayers.slice(0, 2).includes(p) : 
+          currentRotationPlayers.slice(2).includes(p);
+        
+        return !isDuplicate && !isSamePlayer && !isOnSameTeam;
+      }
     });
-
-    return currentCourt;
   };
 
   const availablePlayers = getAvailablePlayers();

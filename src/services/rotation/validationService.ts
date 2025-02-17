@@ -16,39 +16,44 @@ export const validateSwap = (
     return false;
   }
 
-  // If source is resting, verify source player is in resters
-  if (sourcePosition.isResting && !rotation.resters.includes(selectedPlayer)) {
-    toast.error("Selected player not found in resting position");
-    return false;
-  }
-
-  // If target is on court, validate court position
-  if (!targetPosition.isResting) {
-    const targetCourt = rotation.courts[targetPosition.courtIndex];
-    if (!targetCourt) {
-      toast.error("Invalid court selected");
-      return false;
-    }
-
-    // Verify target player is in specified position
-    if (!targetCourt[targetPosition.teamType]?.includes(targetPlayer)) {
-      toast.error("Target player not found in specified position");
-      return false;
-    }
-
-    // Prevent same player appearing twice on a team (if source is not resting)
-    if (!sourcePosition.isResting &&
-        sourcePosition.courtIndex === targetPosition.courtIndex &&
-        sourcePosition.teamType === targetPosition.teamType) {
-      toast.error("Cannot swap player with their own position");
+  // Verify source player position
+  if (sourcePosition.isResting) {
+    if (!rotation.resters.includes(selectedPlayer)) {
+      toast.error("Selected player not found in resting position");
       return false;
     }
   } else {
-    // If target is resting, verify target player is in resters
+    const sourceCourt = rotation.courts[sourcePosition.courtIndex!];
+    if (!sourceCourt[sourcePosition.teamType!].includes(selectedPlayer)) {
+      toast.error("Selected player not found in specified position");
+      return false;
+    }
+  }
+
+  // Verify target player position
+  if (targetPosition.isResting) {
     if (!rotation.resters.includes(targetPlayer)) {
       toast.error("Target player not found in resting position");
       return false;
     }
+  } else {
+    const targetCourt = rotation.courts[targetPosition.courtIndex!];
+    if (!targetCourt) {
+      toast.error("Invalid court selected");
+      return false;
+    }
+    if (!targetCourt[targetPosition.teamType!].includes(targetPlayer)) {
+      toast.error("Target player not found in specified position");
+      return false;
+    }
+  }
+
+  // Prevent same player appearing twice on a team
+  if (!sourcePosition.isResting && !targetPosition.isResting &&
+      sourcePosition.courtIndex === targetPosition.courtIndex &&
+      sourcePosition.teamType === targetPosition.teamType) {
+    toast.error("Cannot swap player with their own position");
+    return false;
   }
 
   return true;
