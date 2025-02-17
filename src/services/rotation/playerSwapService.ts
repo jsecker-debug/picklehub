@@ -26,10 +26,12 @@ export const handlePlayerSwap = (
     return null;
   }
 
-  // Determine target position
-  const targetPosition = targetCourtIndex === -1
-    ? { isResting: true }
-    : { isResting: false, courtIndex: targetCourtIndex, teamType: targetTeamType };
+  // Find target position
+  const targetPosition = findPlayerPosition(specifiedTargetPlayer, targetRotation);
+  if (!targetPosition) {
+    toast.error("Could not find target player's position");
+    return null;
+  }
 
   // Validate the swap
   if (!validateSwap(selectedPlayer, specifiedTargetPlayer, sourcePosition, targetPosition, targetRotation)) {

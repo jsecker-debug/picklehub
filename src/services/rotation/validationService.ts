@@ -16,7 +16,7 @@ export const validateSwap = (
     return false;
   }
 
-  // Verify source player position
+  // Verify both players exist in their respective positions
   if (sourcePosition.isResting) {
     if (!rotation.resters.includes(selectedPlayer)) {
       toast.error("Selected player not found in resting position");
@@ -24,13 +24,12 @@ export const validateSwap = (
     }
   } else {
     const sourceCourt = rotation.courts[sourcePosition.courtIndex!];
-    if (!sourceCourt[sourcePosition.teamType!].includes(selectedPlayer)) {
-      toast.error("Selected player not found in specified position");
+    if (!sourceCourt || !sourceCourt[sourcePosition.teamType!].includes(selectedPlayer)) {
+      toast.error("Selected player not found in specified court position");
       return false;
     }
   }
 
-  // Verify target player position
   if (targetPosition.isResting) {
     if (!rotation.resters.includes(targetPlayer)) {
       toast.error("Target player not found in resting position");
@@ -38,12 +37,8 @@ export const validateSwap = (
     }
   } else {
     const targetCourt = rotation.courts[targetPosition.courtIndex!];
-    if (!targetCourt) {
-      toast.error("Invalid court selected");
-      return false;
-    }
-    if (!targetCourt[targetPosition.teamType!].includes(targetPlayer)) {
-      toast.error("Target player not found in specified position");
+    if (!targetCourt || !targetCourt[targetPosition.teamType!].includes(targetPlayer)) {
+      toast.error("Target player not found in specified court position");
       return false;
     }
   }
@@ -52,7 +47,7 @@ export const validateSwap = (
   if (!sourcePosition.isResting && !targetPosition.isResting &&
       sourcePosition.courtIndex === targetPosition.courtIndex &&
       sourcePosition.teamType === targetPosition.teamType) {
-    toast.error("Cannot swap player with their own position");
+    toast.error("Cannot swap players on the same team");
     return false;
   }
 
