@@ -37,12 +37,12 @@ export const validateSwap = (
       toast.error("Cannot swap player with their own position");
       return false;
     }
-  } else {
-    // Validate resting player
-    if (!rotation.resters.includes(targetPlayer)) {
-      toast.error("Target player not found in resting position");
-      return false;
-    }
+  }
+
+  // For resting target players, just verify they exist in resters
+  if (targetPosition.isResting && !rotation.resters.includes(targetPlayer)) {
+    toast.error("Target player not found in resting position");
+    return false;
   }
 
   return true;

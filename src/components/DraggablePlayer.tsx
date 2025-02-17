@@ -52,12 +52,30 @@ const DraggablePlayer = ({
     });
   };
 
-  // Combine current players and resting players, excluding the current player
-  const availablePlayers = [...currentRotationPlayers, ...restingPlayers]
-    .filter((p, index, self) => 
-      p !== player && // Exclude current player
-      self.indexOf(p) === index // Remove duplicates
-    );
+  // Filter available players based on current player's position
+  const getAvailablePlayers = () => {
+    // If player is resting, show all players except other resting players
+    if (courtIndex === -1) {
+      return currentRotationPlayers;
+    }
+
+    // Get all players from current rotation and resting
+    const allPlayers = [...currentRotationPlayers, ...restingPlayers];
+
+    // Get current court's teams
+    const currentCourt = allPlayers.filter((p, index, self) => {
+      const isOnCurrentTeam = currentRotationPlayers.indexOf(p) !== -1;
+      const isDuplicate = self.indexOf(p) !== index;
+      const isSamePlayer = p === player;
+      
+      // Exclude duplicates, current player, and players on the same team
+      return !isDuplicate && !isSamePlayer && isOnCurrentTeam;
+    });
+
+    return currentCourt;
+  };
+
+  const availablePlayers = getAvailablePlayers();
 
   return (
     <TooltipProvider>
