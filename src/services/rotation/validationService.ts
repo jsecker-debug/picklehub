@@ -16,6 +16,12 @@ export const validateSwap = (
     return false;
   }
 
+  // If source is resting, verify source player is in resters
+  if (sourcePosition.isResting && !rotation.resters.includes(selectedPlayer)) {
+    toast.error("Selected player not found in resting position");
+    return false;
+  }
+
   // If target is on court, validate court position
   if (!targetPosition.isResting) {
     const targetCourt = rotation.courts[targetPosition.courtIndex];
@@ -37,12 +43,12 @@ export const validateSwap = (
       toast.error("Cannot swap player with their own position");
       return false;
     }
-  }
-
-  // For resting target players, just verify they exist in resters
-  if (targetPosition.isResting && !rotation.resters.includes(targetPlayer)) {
-    toast.error("Target player not found in resting position");
-    return false;
+  } else {
+    // If target is resting, verify target player is in resters
+    if (!rotation.resters.includes(targetPlayer)) {
+      toast.error("Target player not found in resting position");
+      return false;
+    }
   }
 
   return true;
