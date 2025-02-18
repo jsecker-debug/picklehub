@@ -10,6 +10,7 @@ interface UseScheduleGenerationProps {
   participants: Participant[] | undefined;
   setRotations: (rotations: Rotation[]) => void;
   setKingCourtRotation: (rotation: Rotation | null) => void;
+  rotationCount: number;
 }
 
 export const useScheduleGeneration = ({
@@ -17,7 +18,8 @@ export const useScheduleGeneration = ({
   selectedParticipants,
   participants,
   setRotations,
-  setKingCourtRotation
+  setKingCourtRotation,
+  rotationCount
 }: UseScheduleGenerationProps) => {
   const generateRandomSchedule = () => {
     const players = parsePlayers(temporaryPlayers, selectedParticipants, participants || []);
@@ -30,8 +32,8 @@ export const useScheduleGeneration = ({
     const rotations: Rotation[] = [];
     const restCounts = new Array(totalPlayers).fill(0);
 
-    for (let rotationNum = 0; rotationNum < 8; rotationNum++) {
-      let maxPlayersPerRotation = Math.floor(totalPlayers / 4) * 4; // Ensure we only use complete courts
+    for (let rotationNum = 0; rotationNum < rotationCount; rotationNum++) {
+      let maxPlayersPerRotation = Math.floor(totalPlayers / 4) * 4;
       let restersCount = totalPlayers - maxPlayersPerRotation;
 
       let playersWithRest = players.map((_, idx) => ({ idx, count: restCounts[idx] }));
@@ -53,7 +55,7 @@ export const useScheduleGeneration = ({
 
       let courts = [];
       for (let i = 0; i < nonResters.length; i += 4) {
-        if (i + 3 < nonResters.length) { // Only create court if we have 4 players
+        if (i + 3 < nonResters.length) {
           let courtIndices = nonResters.slice(i, i + 4);
           let courtPlayers = courtIndices.map((idx) => players[idx]);
           courts.push({
@@ -80,7 +82,7 @@ export const useScheduleGeneration = ({
     }
 
     const totalPlayers = players.length;
-    let maxPlayers = Math.floor(totalPlayers / 4) * 4; // Ensure we only use complete courts
+    let maxPlayers = Math.floor(totalPlayers / 4) * 4;
     let restersCount = totalPlayers - maxPlayers;
 
     let sortedPlayers = players.map((_, idx) => idx);
@@ -92,7 +94,7 @@ export const useScheduleGeneration = ({
 
     let courts = [];
     for (let i = 0; i < nonResters.length; i += 4) {
-      if (i + 3 < nonResters.length) { // Only create court if we have 4 players
+      if (i + 3 < nonResters.length) {
         let courtIndices = nonResters.slice(i, i + 4);
         let courtPlayers = courtIndices.map((idx) => players[idx]);
         courts.push({

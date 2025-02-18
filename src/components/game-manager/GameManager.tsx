@@ -14,11 +14,13 @@ import SaveScheduleButton from "./SaveScheduleButton";
 import { useGameSchedule } from "@/hooks/useGameSchedule";
 import { useScheduleGeneration } from "@/hooks/useScheduleGeneration";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
+import RotationCountSelector from "./RotationCountSelector";
 
 const GameManager = () => {
   const [temporaryPlayers, setTemporaryPlayers] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [selectedSession, setSelectedSession] = useState<string>("");
+  const [rotationCount, setRotationCount] = useState(8);
 
   const { data: participants } = useParticipants();
   const { data: sessions } = useSessions();
@@ -36,7 +38,8 @@ const GameManager = () => {
     selectedParticipants,
     participants,
     setRotations,
-    setKingCourtRotation
+    setKingCourtRotation,
+    rotationCount
   });
 
   const handleClear = () => {
@@ -45,6 +48,7 @@ const GameManager = () => {
     setRotations([]);
     setKingCourtRotation(null);
     setSelectedSession("");
+    setRotationCount(8);
     toast.success("All fields cleared");
   };
 
@@ -81,10 +85,15 @@ const GameManager = () => {
         onChange={setTemporaryPlayers}
       />
 
-      <div className="flex justify-center mb-6">
+      <div className="space-y-4 mb-6">
+        <RotationCountSelector 
+          value={rotationCount}
+          onChange={setRotationCount}
+        />
+        
         <Button
           onClick={generateSchedule}
-          className="bg-primary hover:bg-primary/90"
+          className="w-full bg-primary hover:bg-primary/90"
         >
           Generate Schedule
         </Button>

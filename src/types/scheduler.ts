@@ -1,4 +1,3 @@
-
 export interface Court {
   team1: string[];
   team2: string[];
@@ -21,4 +20,9 @@ export interface Session {
   Date: string;
   Venue: string;
   Status: 'Upcoming' | 'Completed' | 'Ready';
+}
+
+export interface RotationSettings {
+  count: number;
+  minRestCount?: number;
 }
