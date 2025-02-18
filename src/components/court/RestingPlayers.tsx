@@ -23,6 +23,12 @@ const RestingPlayers = ({
 }: RestingPlayersProps) => {
   if (resters.length === 0) return null;
 
+  // Create an empty court object for resting players
+  const emptyCourt: Court = {
+    team1: [],
+    team2: []
+  };
+
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <span className="font-medium text-gray-600">Resting:</span>{" "}
@@ -37,6 +43,8 @@ const RestingPlayers = ({
             rotationIndex={rotationIndex}
             onSwapPlayers={onSwapPlayers}
             allPlayers={allPlayers}
+            court={emptyCourt}
+            resters={resters}
           />
         ))}
       </span>
