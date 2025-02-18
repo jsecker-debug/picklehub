@@ -36,9 +36,17 @@ export const useScheduleGeneration = ({
       .map(p => p.trim())
       .filter(p => p.length > 0);
 
+    // Create a map of participant IDs to names
+    const participantMap = new Map(
+      participants.map(p => [p.id, p.name])
+    );
+
+    // Convert selected participant IDs to names
+    const selectedPlayerNames = selectedParticipants.map(id => participantMap.get(id) || id);
+
     // Combine selected and temporary players
     const allPlayers = [
-      ...selectedParticipants,
+      ...selectedPlayerNames,
       ...tempPlayersList
     ];
 
