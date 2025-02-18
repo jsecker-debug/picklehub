@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { Droppable } from "react-beautiful-dnd";
 import CourtCard from "./court/CourtCard";
 import RestingPlayers from "./court/RestingPlayers";
 import { usePlayersData } from "@/hooks/usePlayersData";
@@ -11,7 +10,7 @@ import { handlePlayerSwap, updateRotationInDatabase } from "@/services/rotation/
 import { Court } from "@/types/scheduler";
 import { CourtDisplayProps, SwapData } from "@/types/court-display";
 
-const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPlayers = [] }: CourtDisplayProps) => {
+const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: CourtDisplayProps) => {
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
   const players = usePlayersData();
   const { localRotations, setLocalRotations } = useRotationData(rotations, sessionId);
@@ -31,7 +30,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPla
     }));
   };
 
-  const handleSwapPlayers = async (data: SwapData) => {
+  const handleDragStart = async (e: React.DragEvent, data: SwapData) => {
     const newRotations = [...localRotations];
     const targetRotation = newRotations[data.rotationIndex];
     
@@ -40,7 +39,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPla
       data.teamType,
       data.courtIndex,
       targetRotation,
-      data.targetPlayer
+      data.targetPlayer // Pass the specified target player
     );
 
     if (!updatedRotation) return;
@@ -51,10 +50,12 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPla
         toast.error("Failed to update player positions");
         return;
       }
+      // Update the rotation in our local state after successful DB update
       newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated successfully");
     } else {
+      // Update local state for non-persisted changes
       newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated");
@@ -129,53 +130,32 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPla
             
             <div className="grid gap-6 md:grid-cols-2">
               {rotation.courts.map((court, courtIdx) => (
-                <Droppable key={courtIdx} droppableId={`court-${idx}-${courtIdx}`}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                    >
-                      <CourtCard
-                        court={court}
-                        courtIndex={courtIdx}
-                        rotationIndex={idx}
-                        onSwapPlayers={handleSwapPlayers}
-                        playerGenders={Object.fromEntries(
-                          Object.entries(players).map(([name, data]) => [name, data.gender])
-                        )}
-                        showScores={sessionStatus === 'Ready' && !isKingCourt}
-                        scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
-                        onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
-                        onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
-                        allCourts={rotation.courts}
-                        restingPlayers={rotation.resters}
-                        allPlayers={allPlayers || []}
-                      />
-                      {provided.placeholder}
-                    </div>
+                <CourtCard
+                  key={courtIdx}
+                  court={court}
+                  courtIndex={courtIdx}
+                  rotationIndex={idx}
+                  onDragStart={handleDragStart}
+                  playerGenders={Object.fromEntries(
+                    Object.entries(players).map(([name, data]) => [name, data.gender])
                   )}
-                </Droppable>
+                  showScores={sessionStatus === 'Ready' && !isKingCourt}
+                  scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
+                  onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
+                  onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
+                  allCourts={rotation.courts}
+                  restingPlayers={rotation.resters}
+                />
               ))}
             </div>
 
-            <Droppable droppableId={`resters-${idx}`}>
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <RestingPlayers 
-                    resters={rotation.resters} 
-                    players={players}
-                    rotationIndex={idx}
-                    onSwapPlayers={handleSwapPlayers}
-                    allCourts={rotation.courts}
-                    allPlayers={allPlayers || []}
-                  />
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+            <RestingPlayers 
+              resters={rotation.resters} 
+              players={players}
+              rotationIndex={idx}
+              onDragStart={handleDragStart}
+              allCourts={rotation.courts}
+            />
           </Card>
         ))}
       </div>

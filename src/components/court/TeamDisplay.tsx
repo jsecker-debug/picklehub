@@ -1,7 +1,5 @@
 
-import { Draggable } from "react-beautiful-dnd";
-import DraggablePlayer from "@/components/DraggablePlayer";
-import { SwapData } from "@/types/court-display";
+import DraggablePlayer from "../DraggablePlayer";
 import { Court } from "@/types/scheduler";
 
 interface TeamDisplayProps {
@@ -10,11 +8,15 @@ interface TeamDisplayProps {
   teamType: 'team1' | 'team2';
   courtIndex: number;
   rotationIndex: number;
-  onSwapPlayers: (data: SwapData) => void;
+  onDragStart: (e: React.DragEvent, data: { 
+    player: string; 
+    teamType: 'team1' | 'team2';
+    courtIndex: number;
+    rotationIndex: number;
+  }) => void;
   allCourts: Court[];
   playerGenders: { [key: string]: string };
   restingPlayers: string[];
-  allPlayers: string[];
 }
 
 const TeamDisplay = ({
@@ -23,32 +25,34 @@ const TeamDisplay = ({
   teamType,
   courtIndex,
   rotationIndex,
-  onSwapPlayers,
+  onDragStart,
   allCourts,
+  playerGenders,
   restingPlayers,
-  allPlayers
 }: TeamDisplayProps) => {
-  const currentCourt = allCourts[courtIndex];
+  // Get all players from all courts in the current rotation
+  const allRotationPlayers = allCourts.reduce((acc: string[], court) => {
+    return [...acc, ...court.team1, ...court.team2];
+  }, []);
 
   return (
-    <div>
-      <h4 className="text-sm font-medium mb-2">{label}:</h4>
-      <div className="space-y-2">
-        {players.map((player, index) => (
+    <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
+      <span className="text-sm text-gray-600">{label}:</span>
+      <span className="font-medium space-x-2">
+        {players.map((player, playerIdx) => (
           <DraggablePlayer
-            key={player}
+            key={playerIdx}
             player={player}
-            index={index}
+            gender={playerGenders[player] || 'M'}
             teamType={teamType}
             courtIndex={courtIndex}
             rotationIndex={rotationIndex}
-            onSwapPlayers={onSwapPlayers}
-            allPlayers={allPlayers}
-            court={currentCourt}
-            resters={restingPlayers}
+            onDragStart={onDragStart}
+            currentRotationPlayers={allRotationPlayers}
+            restingPlayers={restingPlayers}
           />
         ))}
-      </div>
+      </span>
     </div>
   );
 };

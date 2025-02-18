@@ -1,33 +1,29 @@
 
 import { PlayerData } from "@/types/court-display";
-import { Court } from "@/types/scheduler";
+import { Court } from "@/types/scheduler"; // Add this import
 import DraggablePlayer from "../DraggablePlayer";
-import { SwapData } from "@/types/court-display";
 
 interface RestingPlayersProps {
   resters: string[];
   players: { [key: string]: PlayerData };
   rotationIndex: number;
-  onSwapPlayers: (data: SwapData) => void;
+  onDragStart: (e: React.DragEvent, data: { 
+    player: string; 
+    teamType: 'team1' | 'team2';
+    courtIndex: number;
+    rotationIndex: number;
+  }) => void;
   allCourts: Court[];
-  allPlayers: string[];
 }
 
 const RestingPlayers = ({ 
   resters, 
   players,
   rotationIndex,
-  onSwapPlayers,
+  onDragStart,
   allCourts,
-  allPlayers,
 }: RestingPlayersProps) => {
   if (resters.length === 0) return null;
-
-  // Create an empty court object for resting players
-  const emptyCourt: Court = {
-    team1: [],
-    team2: []
-  };
 
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -37,14 +33,13 @@ const RestingPlayers = ({
           <DraggablePlayer
             key={idx}
             player={player}
-            index={idx}
-            teamType="team1"
-            courtIndex={-1}
+            gender={players[player]?.gender || 'M'}
+            teamType="team1" // Default team type for resting players
+            courtIndex={-1} // Special index for resting players
             rotationIndex={rotationIndex}
-            onSwapPlayers={onSwapPlayers}
-            allPlayers={allPlayers}
-            court={emptyCourt}
-            resters={resters}
+            onDragStart={onDragStart}
+            currentRotationPlayers={allCourts.reduce((acc, court) => [...acc, ...court.team1, ...court.team2], [])}
+            restingPlayers={resters}
           />
         ))}
       </span>

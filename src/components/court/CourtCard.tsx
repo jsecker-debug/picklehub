@@ -3,13 +3,17 @@ import { Card } from "@/components/ui/card";
 import TeamDisplay from "./TeamDisplay";
 import ScoreInput from "./ScoreInput";
 import { Court } from "@/types/scheduler";
-import { SwapData } from "@/types/court-display";
 
 interface CourtCardProps {
   court: Court;
   courtIndex: number;
   rotationIndex: number;
-  onSwapPlayers: (data: SwapData) => void;
+  onDragStart: (e: React.DragEvent, data: { 
+    player: string; 
+    teamType: 'team1' | 'team2';
+    courtIndex: number;
+    rotationIndex: number;
+  }) => void;
   playerGenders: { [key: string]: string };
   showScores: boolean;
   scores: { team1: string; team2: string };
@@ -17,14 +21,13 @@ interface CourtCardProps {
   onSubmitScore: () => void;
   allCourts: Court[];
   restingPlayers: string[];
-  allPlayers: string[];
 }
 
 const CourtCard = ({
   court,
   courtIndex,
   rotationIndex,
-  onSwapPlayers,
+  onDragStart,
   playerGenders,
   showScores,
   scores,
@@ -32,7 +35,6 @@ const CourtCard = ({
   onSubmitScore,
   allCourts,
   restingPlayers,
-  allPlayers,
 }: CourtCardProps) => {
   return (
     <Card className="p-4 border-2 border-accent/20 bg-white">
@@ -46,11 +48,10 @@ const CourtCard = ({
           teamType="team1"
           courtIndex={courtIndex}
           rotationIndex={rotationIndex}
-          onSwapPlayers={onSwapPlayers}
+          onDragStart={onDragStart}
           allCourts={allCourts}
           playerGenders={playerGenders}
           restingPlayers={restingPlayers}
-          allPlayers={allPlayers}
         />
         <TeamDisplay
           label="Team 2"
@@ -58,11 +59,10 @@ const CourtCard = ({
           teamType="team2"
           courtIndex={courtIndex}
           rotationIndex={rotationIndex}
-          onSwapPlayers={onSwapPlayers}
+          onDragStart={onDragStart}
           allCourts={allCourts}
           playerGenders={playerGenders}
           restingPlayers={restingPlayers}
-          allPlayers={allPlayers}
         />
 
         {showScores && (

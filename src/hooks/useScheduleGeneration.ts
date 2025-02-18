@@ -1,14 +1,15 @@
 
-import { useState } from "react";
-import { Participant } from "@/types/scheduler";
+import { parsePlayers, shuffle } from "@/utils/gameUtils";
+import type { Rotation } from "@/types/scheduler";
 import { toast } from "sonner";
+import type { Participant } from "@/types/scheduler";
 
 interface UseScheduleGenerationProps {
   temporaryPlayers: string;
   selectedParticipants: string[];
   participants: Participant[] | undefined;
-  setRotations: (rotations: any[]) => void;
-  setKingCourtRotation: (rotation: any | null) => void;
+  setRotations: (rotations: Rotation[]) => void;
+  setKingCourtRotation: (rotation: Rotation | null) => void;
 }
 
 export const useScheduleGeneration = ({
@@ -16,73 +17,100 @@ export const useScheduleGeneration = ({
   selectedParticipants,
   participants,
   setRotations,
-  setKingCourtRotation,
+  setKingCourtRotation
 }: UseScheduleGenerationProps) => {
-  const generateSchedule = (rotationCount: number = 8) => {
-    // Validate inputs
-    if (!participants) {
-      toast.error("No participants data available");
+  const generateRandomSchedule = () => {
+    const players = parsePlayers(temporaryPlayers, selectedParticipants, participants || []);
+    if (players.length < 4) {
+      toast.error("Please select at least 4 players");
       return;
     }
 
-    if (selectedParticipants.length === 0 && !temporaryPlayers) {
-      toast.error("Please select participants or add temporary players");
-      return;
-    }
+    const totalPlayers = players.length;
+    const rotations: Rotation[] = [];
+    const restCounts = new Array(totalPlayers).fill(0);
 
-    // Process temporary players
-    const tempPlayersList = temporaryPlayers
-      .split(',')
-      .map(p => p.trim())
-      .filter(p => p.length > 0);
+    for (let rotationNum = 0; rotationNum < 8; rotationNum++) {
+      let maxPlayersPerRotation = Math.floor(totalPlayers / 4) * 4; // Ensure we only use complete courts
+      let restersCount = totalPlayers - maxPlayersPerRotation;
 
-    // Create a map of participant IDs to names
-    const participantMap = new Map(
-      participants.map(p => [p.id, p.name])
-    );
+      let playersWithRest = players.map((_, idx) => ({ idx, count: restCounts[idx] }));
+      playersWithRest.sort((a, b) => a.count - b.count);
+      
+      let groups: { [key: number]: number[] } = {};
+      playersWithRest.forEach((p) => {
+        if (!groups[p.count]) groups[p.count] = [];
+        groups[p.count].push(p.idx);
+      });
+      Object.values(groups).forEach((group) => shuffle(group));
+      let sortedPlayers = Object.values(groups).flat();
 
-    // Convert selected participant IDs to names
-    const selectedPlayerNames = selectedParticipants.map(id => participantMap.get(id) || id);
+      let resters = sortedPlayers.slice(0, restersCount);
+      resters.forEach((idx) => restCounts[idx]++);
 
-    // Combine selected and temporary players
-    const allPlayers = [
-      ...selectedPlayerNames,
-      ...tempPlayersList
-    ];
+      let nonResters = sortedPlayers.slice(restersCount);
+      shuffle(nonResters);
 
-    if (allPlayers.length < 4) {
-      toast.error("Need at least 4 players to generate a schedule");
-      return;
-    }
-
-    // Generate rotations based on the count
-    const generatedRotations = Array(rotationCount).fill(null).map((_, index) => ({
-      courts: [
-        {
-          team1: allPlayers.slice(0, 2),
-          team2: allPlayers.slice(2, 4)
+      let courts = [];
+      for (let i = 0; i < nonResters.length; i += 4) {
+        if (i + 3 < nonResters.length) { // Only create court if we have 4 players
+          let courtIndices = nonResters.slice(i, i + 4);
+          let courtPlayers = courtIndices.map((idx) => players[idx]);
+          courts.push({
+            team1: [courtPlayers[0], courtPlayers[1]],
+            team2: [courtPlayers[2], courtPlayers[3]]
+          });
         }
-      ],
-      resters: allPlayers.slice(4),
-      id: `rotation-${index + 1}`
-    }));
+      }
 
-    setRotations(generatedRotations);
+      rotations.push({
+        courts: courts,
+        resters: resters.map((idx) => players[idx])
+      });
+    }
 
-    // Generate king court rotation
-    const kingCourtRotation = {
-      courts: [
-        {
-          team1: allPlayers.slice(0, 2),
-          team2: allPlayers.slice(2, 4)
-        }
-      ],
-      resters: allPlayers.slice(4),
-      id: 'king-court'
-    };
+    setRotations(rotations);
+  };
 
-    setKingCourtRotation(kingCourtRotation);
-    toast.success(`Generated ${rotationCount} rotations successfully`);
+  const generateKingCourt = () => {
+    const players = parsePlayers(temporaryPlayers, selectedParticipants, participants || []);
+    if (players.length < 4) {
+      toast.error("Please select at least 4 players");
+      return;
+    }
+
+    const totalPlayers = players.length;
+    let maxPlayers = Math.floor(totalPlayers / 4) * 4; // Ensure we only use complete courts
+    let restersCount = totalPlayers - maxPlayers;
+
+    let sortedPlayers = players.map((_, idx) => idx);
+    shuffle(sortedPlayers);
+
+    let resters = sortedPlayers.slice(0, restersCount);
+    let nonResters = sortedPlayers.slice(restersCount);
+    shuffle(nonResters);
+
+    let courts = [];
+    for (let i = 0; i < nonResters.length; i += 4) {
+      if (i + 3 < nonResters.length) { // Only create court if we have 4 players
+        let courtIndices = nonResters.slice(i, i + 4);
+        let courtPlayers = courtIndices.map((idx) => players[idx]);
+        courts.push({
+          team1: [courtPlayers[0], courtPlayers[1]],
+          team2: [courtPlayers[2], courtPlayers[3]]
+        });
+      }
+    }
+
+    setKingCourtRotation({
+      courts: courts,
+      resters: resters.map((idx) => players[idx])
+    });
+  };
+
+  const generateSchedule = () => {
+    generateRandomSchedule();
+    generateKingCourt();
   };
 
   return { generateSchedule };
