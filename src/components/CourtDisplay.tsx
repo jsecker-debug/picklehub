@@ -127,45 +127,55 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPla
               {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
             </h2>
             
-            <Droppable droppableId={`rotation-${idx}`}>
+            <div className="grid gap-6 md:grid-cols-2">
+              {rotation.courts.map((court, courtIdx) => (
+                <Droppable key={courtIdx} droppableId={`court-${idx}-${courtIdx}`}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                      <CourtCard
+                        court={court}
+                        courtIndex={courtIdx}
+                        rotationIndex={idx}
+                        onSwapPlayers={handleSwapPlayers}
+                        playerGenders={Object.fromEntries(
+                          Object.entries(players).map(([name, data]) => [name, data.gender])
+                        )}
+                        showScores={sessionStatus === 'Ready' && !isKingCourt}
+                        scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
+                        onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
+                        onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
+                        allCourts={rotation.courts}
+                        restingPlayers={rotation.resters}
+                        allPlayers={allPlayers || []}
+                      />
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              ))}
+            </div>
+
+            <Droppable droppableId={`resters-${idx}`}>
               {(provided) => (
-                <div 
+                <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="grid gap-6 md:grid-cols-2"
                 >
-                  {rotation.courts.map((court, courtIdx) => (
-                    <CourtCard
-                      key={courtIdx}
-                      court={court}
-                      courtIndex={courtIdx}
-                      rotationIndex={idx}
-                      onSwapPlayers={handleSwapPlayers}
-                      playerGenders={Object.fromEntries(
-                        Object.entries(players).map(([name, data]) => [name, data.gender])
-                      )}
-                      showScores={sessionStatus === 'Ready' && !isKingCourt}
-                      scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
-                      onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
-                      onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
-                      allCourts={rotation.courts}
-                      restingPlayers={rotation.resters}
-                      allPlayers={allPlayers || []}
-                    />
-                  ))}
+                  <RestingPlayers 
+                    resters={rotation.resters} 
+                    players={players}
+                    rotationIndex={idx}
+                    onSwapPlayers={handleSwapPlayers}
+                    allCourts={rotation.courts}
+                    allPlayers={allPlayers || []}
+                  />
                   {provided.placeholder}
                 </div>
               )}
             </Droppable>
-
-            <RestingPlayers 
-              resters={rotation.resters} 
-              players={players}
-              rotationIndex={idx}
-              onSwapPlayers={handleSwapPlayers}
-              allCourts={rotation.courts}
-              allPlayers={allPlayers || []}
-            />
           </Card>
         ))}
       </div>
