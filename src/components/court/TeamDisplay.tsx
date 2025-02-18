@@ -1,6 +1,7 @@
 
 import DraggablePlayer from "../DraggablePlayer";
 import { Court } from "@/types/scheduler";
+import { SwapData } from "@/types/court-display";
 
 interface TeamDisplayProps {
   label: string;
@@ -8,15 +9,11 @@ interface TeamDisplayProps {
   teamType: 'team1' | 'team2';
   courtIndex: number;
   rotationIndex: number;
-  onDragStart: (e: React.DragEvent, data: { 
-    player: string; 
-    teamType: 'team1' | 'team2';
-    courtIndex: number;
-    rotationIndex: number;
-  }) => void;
+  onSwapPlayers: (data: SwapData) => void;
   allCourts: Court[];
   playerGenders: { [key: string]: string };
   restingPlayers: string[];
+  allPlayers: string[];
 }
 
 const TeamDisplay = ({
@@ -25,16 +22,9 @@ const TeamDisplay = ({
   teamType,
   courtIndex,
   rotationIndex,
-  onDragStart,
-  allCourts,
-  playerGenders,
-  restingPlayers,
+  onSwapPlayers,
+  allPlayers,
 }: TeamDisplayProps) => {
-  // Get all players from all courts in the current rotation
-  const allRotationPlayers = allCourts.reduce((acc: string[], court) => {
-    return [...acc, ...court.team1, ...court.team2];
-  }, []);
-
   return (
     <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
       <span className="text-sm text-gray-600">{label}:</span>
@@ -43,13 +33,12 @@ const TeamDisplay = ({
           <DraggablePlayer
             key={playerIdx}
             player={player}
-            gender={playerGenders[player] || 'M'}
+            index={playerIdx}
             teamType={teamType}
             courtIndex={courtIndex}
             rotationIndex={rotationIndex}
-            onDragStart={onDragStart}
-            currentRotationPlayers={allRotationPlayers}
-            restingPlayers={restingPlayers}
+            onSwapPlayers={onSwapPlayers}
+            allPlayers={allPlayers}
           />
         ))}
       </span>
