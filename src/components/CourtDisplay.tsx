@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -10,7 +11,7 @@ import { handlePlayerSwap, updateRotationInDatabase } from "@/services/rotation/
 import { Court } from "@/types/scheduler";
 import { CourtDisplayProps, SwapData } from "@/types/court-display";
 
-const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: CourtDisplayProps) => {
+const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPlayers = [] }: CourtDisplayProps) => {
   const [scores, setScores] = useState<{ [key: string]: { team1: string; team2: string } }>({});
   const players = usePlayersData();
   const { localRotations, setLocalRotations } = useRotationData(rotations, sessionId);
@@ -30,7 +31,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
     }));
   };
 
-  const handleDragStart = async (e: React.DragEvent, data: SwapData) => {
+  const handleSwapPlayers = async (data: SwapData) => {
     const newRotations = [...localRotations];
     const targetRotation = newRotations[data.rotationIndex];
     
@@ -39,7 +40,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       data.teamType,
       data.courtIndex,
       targetRotation,
-      data.targetPlayer // Pass the specified target player
+      data.targetPlayer
     );
 
     if (!updatedRotation) return;
@@ -50,12 +51,10 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
         toast.error("Failed to update player positions");
         return;
       }
-      // Update the rotation in our local state after successful DB update
       newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated successfully");
     } else {
-      // Update local state for non-persisted changes
       newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated");
@@ -135,7 +134,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                   court={court}
                   courtIndex={courtIdx}
                   rotationIndex={idx}
-                  onDragStart={handleDragStart}
+                  onSwapPlayers={handleSwapPlayers}
                   playerGenders={Object.fromEntries(
                     Object.entries(players).map(([name, data]) => [name, data.gender])
                   )}
@@ -145,6 +144,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
                   onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
                   allCourts={rotation.courts}
                   restingPlayers={rotation.resters}
+                  allPlayers={allPlayers || []}
                 />
               ))}
             </div>
@@ -153,8 +153,9 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
               resters={rotation.resters} 
               players={players}
               rotationIndex={idx}
-              onDragStart={handleDragStart}
+              onSwapPlayers={handleSwapPlayers}
               allCourts={rotation.courts}
+              allPlayers={allPlayers || []}
             />
           </Card>
         ))}
