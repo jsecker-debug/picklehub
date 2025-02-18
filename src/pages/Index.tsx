@@ -1,10 +1,15 @@
 
 import GameManager from "@/components/game-manager/GameManager";
-import { DragDropContext } from "react-beautiful-dnd";
+import { DragDropContext, DropResult } from "react-beautiful-dnd";
 
 const Index = () => {
+  const onDragEnd = (result: DropResult) => {
+    // We'll implement drag and drop handling here in the future
+    console.log('Drag ended:', result);
+  };
+
   return (
-    <DragDropContext onDragEnd={() => {}}>
+    <DragDropContext onDragEnd={onDragEnd}>
       <div className="h-full bg-gray-50">
         <div className="max-w-full mx-auto py-20 px-6">
           <div className="mb-6">
