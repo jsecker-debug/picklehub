@@ -1,8 +1,8 @@
 
-import { Droppable } from "react-beautiful-dnd";
-import DraggablePlayer from "../DraggablePlayer";
-import { Court } from "@/types/scheduler";
+import { Draggable } from "react-beautiful-dnd";
+import DraggablePlayer from "@/components/DraggablePlayer";
 import { SwapData } from "@/types/court-display";
+import { Court } from "@/types/scheduler";
 
 interface TeamDisplayProps {
   label: string;
@@ -24,34 +24,31 @@ const TeamDisplay = ({
   courtIndex,
   rotationIndex,
   onSwapPlayers,
-  allPlayers,
+  allCourts,
+  restingPlayers,
+  allPlayers
 }: TeamDisplayProps) => {
+  const currentCourt = allCourts[courtIndex];
+
   return (
-    <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
-      <span className="text-sm text-gray-600">{label}:</span>
-      <Droppable droppableId={`team-${teamType}-${courtIndex}-${rotationIndex}`}>
-        {(provided) => (
-          <span 
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="font-medium space-x-2"
-          >
-            {players.map((player, playerIdx) => (
-              <DraggablePlayer
-                key={playerIdx}
-                player={player}
-                index={playerIdx}
-                teamType={teamType}
-                courtIndex={courtIndex}
-                rotationIndex={rotationIndex}
-                onSwapPlayers={onSwapPlayers}
-                allPlayers={allPlayers}
-              />
-            ))}
-            {provided.placeholder}
-          </span>
-        )}
-      </Droppable>
+    <div>
+      <h4 className="text-sm font-medium mb-2">{label}:</h4>
+      <div className="space-y-2">
+        {players.map((player, index) => (
+          <DraggablePlayer
+            key={player}
+            player={player}
+            index={index}
+            teamType={teamType}
+            courtIndex={courtIndex}
+            rotationIndex={rotationIndex}
+            onSwapPlayers={onSwapPlayers}
+            allPlayers={allPlayers}
+            court={currentCourt}
+            resters={restingPlayers}
+          />
+        ))}
+      </div>
     </div>
   );
 };

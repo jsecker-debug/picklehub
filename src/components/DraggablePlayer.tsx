@@ -12,6 +12,8 @@ interface DraggablePlayerProps {
   rotationIndex: number;
   onSwapPlayers: (data: SwapData) => void;
   allPlayers: string[];
+  court: { team1: string[]; team2: string[] };
+  resters: string[];
 }
 
 const DraggablePlayer = ({
@@ -21,8 +23,30 @@ const DraggablePlayer = ({
   courtIndex,
   rotationIndex,
   onSwapPlayers,
-  allPlayers
+  allPlayers,
+  court,
+  resters
 }: DraggablePlayerProps) => {
+  const getSwappablePlayers = () => {
+    // If the player is on a team
+    if (teamType === 'team1' || teamType === 'team2') {
+      const currentTeam = court[teamType];
+      // Get all players except the current player and their teammate
+      return allPlayers.filter(p => 
+        p !== player && 
+        !currentTeam.includes(p)
+      );
+    }
+    // If the player is resting
+    else {
+      // Get all players except the current player and other resting players
+      return allPlayers.filter(p => 
+        p !== player && 
+        !resters.includes(p)
+      );
+    }
+  };
+
   return (
     <Draggable draggableId={`${player}-${courtIndex}-${teamType}`} index={index}>
       {(provided) => (
@@ -42,22 +66,20 @@ const DraggablePlayer = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 max-h-[300px] overflow-y-auto">
-              {allPlayers
-                .filter(p => p !== player)
-                .map((targetPlayer) => (
-                  <DropdownMenuItem
-                    key={targetPlayer}
-                    onClick={() => onSwapPlayers({
-                      player,
-                      teamType,
-                      courtIndex,
-                      rotationIndex,
-                      targetPlayer
-                    })}
-                  >
-                    Swap with {targetPlayer}
-                  </DropdownMenuItem>
-                ))}
+              {getSwappablePlayers().map((targetPlayer) => (
+                <DropdownMenuItem
+                  key={targetPlayer}
+                  onClick={() => onSwapPlayers({
+                    player,
+                    teamType,
+                    courtIndex,
+                    rotationIndex,
+                    targetPlayer
+                  })}
+                >
+                  Swap with {targetPlayer}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
