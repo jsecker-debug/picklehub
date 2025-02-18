@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import CourtCard from "./court/CourtCard";
 import RestingPlayers from "./court/RestingPlayers";
 import { usePlayersData } from "@/hooks/usePlayersData";
@@ -119,48 +120,59 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus, allPla
   };
 
   return (
-    <div className="space-y-8">
-      <div id="court-rotations" className="bg-white">
-        {localRotations.map((rotation, idx) => (
-          <Card key={idx} className="p-6 mb-6 bg-white">
-            <h2 className="text-xl font-semibold mb-4 text-primary">
-              {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
-            </h2>
-            
-            <div className="grid gap-6 md:grid-cols-2">
-              {rotation.courts.map((court, courtIdx) => (
-                <CourtCard
-                  key={courtIdx}
-                  court={court}
-                  courtIndex={courtIdx}
-                  rotationIndex={idx}
-                  onSwapPlayers={handleSwapPlayers}
-                  playerGenders={Object.fromEntries(
-                    Object.entries(players).map(([name, data]) => [name, data.gender])
-                  )}
-                  showScores={sessionStatus === 'Ready' && !isKingCourt}
-                  scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
-                  onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
-                  onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
-                  allCourts={rotation.courts}
-                  restingPlayers={rotation.resters}
-                  allPlayers={allPlayers || []}
-                />
-              ))}
-            </div>
+    <DragDropContext onDragEnd={() => {}}>
+      <div className="space-y-8">
+        <div id="court-rotations" className="bg-white">
+          {localRotations.map((rotation, idx) => (
+            <Card key={idx} className="p-6 mb-6 bg-white">
+              <h2 className="text-xl font-semibold mb-4 text-primary">
+                {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
+              </h2>
+              
+              <Droppable droppableId={`rotation-${idx}`}>
+                {(provided) => (
+                  <div 
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="grid gap-6 md:grid-cols-2"
+                  >
+                    {rotation.courts.map((court, courtIdx) => (
+                      <CourtCard
+                        key={courtIdx}
+                        court={court}
+                        courtIndex={courtIdx}
+                        rotationIndex={idx}
+                        onSwapPlayers={handleSwapPlayers}
+                        playerGenders={Object.fromEntries(
+                          Object.entries(players).map(([name, data]) => [name, data.gender])
+                        )}
+                        showScores={sessionStatus === 'Ready' && !isKingCourt}
+                        scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
+                        onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
+                        onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
+                        allCourts={rotation.courts}
+                        restingPlayers={rotation.resters}
+                        allPlayers={allPlayers || []}
+                      />
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
 
-            <RestingPlayers 
-              resters={rotation.resters} 
-              players={players}
-              rotationIndex={idx}
-              onSwapPlayers={handleSwapPlayers}
-              allCourts={rotation.courts}
-              allPlayers={allPlayers || []}
-            />
-          </Card>
-        ))}
+              <RestingPlayers 
+                resters={rotation.resters} 
+                players={players}
+                rotationIndex={idx}
+                onSwapPlayers={handleSwapPlayers}
+                allCourts={rotation.courts}
+                allPlayers={allPlayers || []}
+              />
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+    </DragDropContext>
   );
 };
 
