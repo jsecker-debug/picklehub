@@ -6,6 +6,7 @@ export interface CourtDisplayProps {
   isKingCourt: boolean;
   sessionId?: string;
   sessionStatus?: string;
+  allPlayers?: string[];
 }
 
 export interface PlayerData {
@@ -18,7 +19,7 @@ export interface SwapData {
   teamType: 'team1' | 'team2';
   courtIndex: number;
   rotationIndex: number;
-  targetPlayer?: string; // Add this field
+  targetPlayer?: string;
 }
 
 export interface ScoreData {

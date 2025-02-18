@@ -19,6 +19,7 @@ const GameManager = () => {
   const [temporaryPlayers, setTemporaryPlayers] = useState("");
   const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
   const [selectedSession, setSelectedSession] = useState<string>("");
+  const [rotationCount, setRotationCount] = useState<number>(8);
 
   const { data: participants } = useParticipants();
   const { data: sessions } = useSessions();
@@ -45,8 +46,15 @@ const GameManager = () => {
     setRotations([]);
     setKingCourtRotation(null);
     setSelectedSession("");
+    setRotationCount(8);
     toast.success("All fields cleared");
   };
+
+  // Calculate all players for the dropdown
+  const allPlayers = [
+    ...selectedParticipants,
+    ...temporaryPlayers.split(',').map(p => p.trim()).filter(p => p.length > 0)
+  ];
 
   return (
     <Card className="p-6 mb-6">
@@ -81,10 +89,22 @@ const GameManager = () => {
         onChange={setTemporaryPlayers}
       />
 
-      <div className="flex justify-center mb-6">
+      <div className="space-y-4 mb-6">
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium">Number of Rotations:</label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={rotationCount}
+            onChange={(e) => setRotationCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 8)))}
+            className="w-20 px-2 py-1 border rounded"
+          />
+        </div>
+        
         <Button
-          onClick={generateSchedule}
-          className="bg-primary hover:bg-primary/90"
+          onClick={() => generateSchedule(rotationCount)}
+          className="bg-primary hover:bg-primary/90 w-full"
         >
           Generate Schedule
         </Button>
@@ -92,13 +112,21 @@ const GameManager = () => {
 
       {rotations.length > 0 && (
         <div id="schedule-content">
-          <CourtDisplay rotations={rotations} isKingCourt={false} />
+          <CourtDisplay 
+            rotations={rotations} 
+            isKingCourt={false} 
+            allPlayers={allPlayers}
+          />
         </div>
       )}
 
       {kingCourtRotation && (
         <div className="mt-8" id="king-court-content">
-          <CourtDisplay rotations={[kingCourtRotation]} isKingCourt={true} />
+          <CourtDisplay 
+            rotations={[kingCourtRotation]} 
+            isKingCourt={true}
+            allPlayers={allPlayers}
+          />
         </div>
       )}
 
