@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
@@ -28,14 +28,13 @@ const Sessions = () => {
 
   const addSession = useMutation({
     mutationFn: async ({ date, venue }: { date: Date; venue: string }) => {
-      const Status = date < new Date() ? 'Completed' : 'Upcoming';
-      
+      // Always set new sessions as Upcoming
       const { data, error } = await supabase
         .from("sessions")
         .insert([{ 
           Date: date.toISOString(),
           Venue: venue,
-          Status
+          Status: 'Upcoming'
         }])
         .select();
       
@@ -68,26 +67,42 @@ const Sessions = () => {
   };
 
   const getNextSession = (sessions: Session[]) => {
-    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     return sessions
-      .filter(session => new Date(session.Date) > now)
+      .filter(session => {
+        const sessionDate = new Date(session.Date);
+        sessionDate.setHours(0, 0, 0, 0);
+        return sessionDate >= today;
+      })
       .sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime())[0];
   };
 
   const getUpcomingSessions = (sessions: Session[]) => {
-    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const nextSession = getNextSession(sessions);
+    
     return sessions
-      .filter(session => 
-        new Date(session.Date) > now && 
-        (!nextSession || session.id !== nextSession.id)
-      )
+      .filter(session => {
+        const sessionDate = new Date(session.Date);
+        sessionDate.setHours(0, 0, 0, 0);
+        return sessionDate >= today && (!nextSession || session.id !== nextSession.id);
+      })
       .sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
   };
 
   const getCompletedSessions = (sessions: Session[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     return sessions
-      .filter(session => new Date(session.Date) <= new Date())
+      .filter(session => {
+        const sessionDate = new Date(session.Date);
+        sessionDate.setHours(0, 0, 0, 0);
+        return sessionDate < today;
+      })
       .sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
   };
 
@@ -145,6 +160,9 @@ const Sessions = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Session</DialogTitle>
+                <DialogDescription>
+                  Select a date and venue for the new session.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
@@ -204,6 +222,9 @@ const Sessions = () => {
                 <DialogContent className="max-w-4xl max-h-[calc(100vh-24px)] my-12 overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle className="text-3xl font-bold text-primary">Session Schedule</DialogTitle>
+                    <DialogDescription>
+                      View and manage the schedule for this session.
+                    </DialogDescription>
                   </DialogHeader>
                   {isLoadingSchedule ? (
                     <div className="text-center py-4">Loading schedule...</div>

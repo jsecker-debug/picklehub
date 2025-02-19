@@ -1,4 +1,4 @@
-import { AddParticipantForm } from "@/components/participants/AddParticipantForm";
+import { AddParticipantDialog } from "@/components/AddParticipantDialog";
 import { ParticipantsList } from "@/components/participants/ParticipantsList";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -58,7 +58,9 @@ const Participants = () => {
             </Card>
           </div>
           <div className="w-full md:flex-1">
-            <AddParticipantForm />
+            <Card className="p-6">
+              <AddParticipantDialog />
+            </Card>
           </div>
         </div>
 

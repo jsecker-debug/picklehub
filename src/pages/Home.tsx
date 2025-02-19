@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { GradientButton } from "@/components/ui/gradient-button";
 
 const Home = () => {
   return (
@@ -14,7 +15,7 @@ const Home = () => {
         </div>
 
         <div className="mb-8 space-x-4">
-          <Link to="/index" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
+          <Link to="/Index" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
             Scheduler
           </Link>
           <Link to="/participants" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
@@ -83,14 +84,13 @@ const Home = () => {
             </div>
           </Card>
 
-          <Link 
-            to="/sessions" 
-            className="block bg-primary hover:bg-primary/90 text-white p-6 rounded-lg text-center"
-          >
-            <span className="flex items-center justify-center gap-2 text-lg font-medium">
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </span>
+          <Link to="/sessions">
+            <GradientButton className="w-full py-6">
+              <span className="flex items-center justify-center gap-2 text-lg font-medium">
+                Get Started
+                <ArrowRight className="w-5 h-5" />
+              </span>
+            </GradientButton>
           </Link>
         </div>
       </div>
