@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
@@ -143,9 +144,9 @@ const Logo = () => {
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="font-medium text-black dark:text-white whitespace-pre text-lg"
+        className="font-emblema-one text-black dark:text-white whitespace-pre text-2xl"
       >
-        PICKLEHUB
+        DINK
       </motion.span>
     </div>
   );

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Participant {
   id: string;
@@ -117,23 +119,32 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <span className="text-sm text-gray-500">Level</span>
-                    <Input
-                      type="number"
-                      value={participant.level?.toString() || "0"}
-                      onChange={(e) => handleLevelChange(participant.id, e.target.value)}
-                      step="0.1"
-                      min="0"
-                      max="10"
-                      className="w-20"
-                    />
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Input
+                            type="number"
+                            value={participant.level?.toString() || "0"}
+                            disabled
+                            step="0.1"
+                            min="0"
+                            max="10"
+                            className="w-20 bg-gray-100 cursor-not-allowed"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Levels will change after scores are submitted</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                   <Button
-                    variant="destructive"
-                    size="sm"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => deleteParticipant.mutate(participant.id)}
-                    className="bg-red-600/80 hover:bg-red-600/90 w-full sm:w-auto"
+                    className="text-gray-500 hover:text-red-600 hover:bg-red-50"
                   >
-                    Remove
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

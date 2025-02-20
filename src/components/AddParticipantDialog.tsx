@@ -81,7 +81,7 @@ export function AddParticipantDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full">
           <PlusIcon className="mr-2 h-4 w-4" />
           Add Participant
         </Button>

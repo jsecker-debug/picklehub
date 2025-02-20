@@ -1,4 +1,3 @@
-
 import { Calendar, Users, Clock, Home } from "lucide-react";
 
 export const navigationItems = [

@@ -8,14 +8,14 @@ const Home = () => {
     <div className="h-full bg-gray-50">
       <div className="max-w-4xl mx-auto py-20 px-6">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary font-anybody">Welcome to PickleHub</h1>
+          <h1 className="text-4xl font-bold text-primary">Welcome to <span className="font-emblema-one">DINK</span></h1>
           <p className="text-gray-600 mt-4 text-lg">
             Your complete solution for managing pickleball sessions and schedules.
           </p>
         </div>
 
         <div className="mb-8 space-x-4">
-          <Link to="/Index" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
+          <Link to="/scheduler" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
             Scheduler
           </Link>
           <Link to="/participants" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
@@ -26,9 +26,9 @@ const Home = () => {
           </Link>
         </div>
 
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-2xl font-semibold mb-4">How It Works</h2>
+        <div className="space-y-0">
+          <Card className="p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4">How It Works</h2>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">1</div>
@@ -46,7 +46,7 @@ const Home = () => {
                 <div>
                   <p className="font-medium">Generate Schedule</p>
                   <p className="text-gray-600">Use the {" "}
-                    <Link to="/" className="text-primary hover:underline">Scheduler</Link> to 
+                    <Link to="/scheduler" className="text-primary hover:underline">Scheduler</Link> to 
                     generate game rotations and save them to your session.
                   </p>
                 </div>

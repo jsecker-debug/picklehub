@@ -67,7 +67,9 @@ function ProtectedLayout() {
             <div className="flex justify-end mb-4">
               <ProfileButton />
             </div>
-            <Outlet />
+            <div className="bg-gray-50 rounded-xl p-6">
+              <Outlet />
+            </div>
           </div>
         </main>
       </Sidebar>
