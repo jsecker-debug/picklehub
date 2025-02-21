@@ -93,11 +93,12 @@ export type Database = {
       }
       participants: {
         Row: {
+          avatar_url: string | null
           created_at: string
           gender: string
-          group_id: string | null
           id: string
           level: number | null
+          Linked: boolean | null
           losses: number | null
           name: string | null
           rating_confidence: number | null
@@ -107,11 +108,12 @@ export type Database = {
           wins: number | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           gender: string
-          group_id?: string | null
           id?: string
           level?: number | null
+          Linked?: boolean | null
           losses?: number | null
           name?: string | null
           rating_confidence?: number | null
@@ -121,11 +123,12 @@ export type Database = {
           wins?: number | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           gender?: string
-          group_id?: string | null
           id?: string
           level?: number | null
+          Linked?: boolean | null
           losses?: number | null
           name?: string | null
           rating_confidence?: number | null

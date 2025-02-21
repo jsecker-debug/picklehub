@@ -1,15 +1,18 @@
+
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { GradientButton } from '@/components/ui/gradient-button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useMediaQuery } from '@/hooks/use-mobile'
 
 export function ProfileButton() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(0)
+  const isMobile = useMediaQuery('(max-width: 768px)')
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
 
@@ -65,15 +68,19 @@ export function ProfileButton() {
     }
   }
 
-  // Function to force refresh the avatar
-  const refreshAvatar = () => {
-    setLastRefresh(Date.now())
-  }
+  const handleClick = () => {
+    navigate('/profile');
+    // Close mobile menu if it's open
+    const menuButton = document.querySelector('button[aria-label="Toggle menu"]');
+    if (menuButton && isMobile) {
+      (menuButton as HTMLButtonElement).click();
+    }
+  };
 
   return (
     <GradientButton
-      onClick={() => navigate('/profile')}
-      className="min-w-0 px-4 py-2"
+      onClick={handleClick}
+      className="min-w-0 px-4 py-2 z-50"
     >
       <Avatar className="h-6 w-6 mr-2 ring-1 ring-offset-1 ring-offset-background ring-muted">
         <AvatarImage 
@@ -88,4 +95,4 @@ export function ProfileButton() {
       <span className="text-sm font-medium">{userName}</span>
     </GradientButton>
   )
-} 
+}
