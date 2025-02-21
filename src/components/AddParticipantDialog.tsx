@@ -45,7 +45,8 @@ export function AddParticipantDialog() {
           gender: formData.gender,
           total_games_played: 0,
           wins: 0,
-          losses: 0
+          losses: 0,
+          Linked: false
         }])
 
       if (participantError) throw participantError

@@ -74,7 +74,8 @@ export function ProfileSetup() {
           losses: 0,
           rating_confidence: 1.0,
           rating_volatility: 1.0,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          Linked: true
         }], {
           onConflict: 'id'
         })

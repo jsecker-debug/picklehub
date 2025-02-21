@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Camera } from 'lucide-react'
 import { CropImageModal } from '@/components/ui/crop-image-modal'
+import { useNavigate } from 'react-router-dom'
+import { GradientButton } from '@/components/ui/gradient-button'
 
 type Participant = {
   id: string
@@ -36,6 +38,7 @@ export default function Profile() {
     gender: '',
     phone: ''
   })
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (user) {
@@ -259,6 +262,26 @@ export default function Profile() {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      })
+      
+      navigate('/auth/sign-in')
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'An error occurred while logging out',
+        variant: "destructive"
+      })
+    }
+  }
+
   if (!participant) {
     return <div>Loading...</div>
   }
@@ -372,9 +395,18 @@ export default function Profile() {
               <Button type="submit" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Changes'}
               </Button>
-              <Button type="button" variant="outline" onClick={handleResetPassword}>
-                Reset Password
-              </Button>
+              <div className="space-x-2">
+                <Button type="button" variant="outline" onClick={handleResetPassword}>
+                  Reset Password
+                </Button>
+                <GradientButton 
+                  type="button"
+                  onClick={handleLogout}
+                  className="min-w-0 px-4 py-2 gradient-button-red"
+                >
+                  Logout
+                </GradientButton>
+              </div>
             </div>
           </form>
 
