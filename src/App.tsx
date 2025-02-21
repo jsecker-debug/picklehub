@@ -64,7 +64,7 @@ function ProtectedLayout() {
       <Sidebar>
         <main className="flex-1 overflow-auto">
           <div className="p-4">
-            <div className="flex justify-end mb-4">
+            <div className="hidden md:flex justify-end mb-4">
               <ProfileButton />
             </div>
             <div className="bg-gray-50 rounded-xl p-6">

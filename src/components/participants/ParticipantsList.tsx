@@ -12,6 +12,7 @@ interface Participant {
   name: string;
   level?: number;
   gender?: string;
+  Linked?: boolean;
 }
 
 export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string }) => {
@@ -113,7 +114,10 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
                 key={participant.id}
                 className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-white rounded-lg border gap-2"
               >
-                <span className="truncate w-full sm:w-auto">
+                <span className="truncate w-full sm:w-auto flex items-center gap-2">
+                  {participant.Linked && (
+                    <span className="w-2 h-2 rounded-full bg-red-500" title="Linked Account" />
+                  )}
                   {participant.name} {participant.gender ? `(${participant.gender.charAt(0)})` : ''}
                 </span>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">

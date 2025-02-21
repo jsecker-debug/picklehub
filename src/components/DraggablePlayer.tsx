@@ -1,4 +1,3 @@
-
 import {
   Tooltip,
   TooltipContent,
@@ -66,13 +65,11 @@ const DraggablePlayer = ({
         return !isDuplicate && !isSamePlayer && !restingPlayers.includes(p);
       } else {
         // If current player is on court, show all players except those on the same team
-        const isOnSameTeam = courtIndex !== -1 && 
-          currentRotationPlayers.indexOf(p) !== -1 && 
-          teamType === 'team1' ? 
-          currentRotationPlayers.slice(0, 2).includes(p) : 
-          currentRotationPlayers.slice(2).includes(p);
+        const currentTeamPlayers = courtIndex !== -1 && teamType === 'team1' 
+          ? currentRotationPlayers.slice(courtIndex * 4, courtIndex * 4 + 2)  // Get team1 players for this court
+          : currentRotationPlayers.slice(courtIndex * 4 + 2, courtIndex * 4 + 4);  // Get team2 players for this court
         
-        return !isDuplicate && !isSamePlayer && !isOnSameTeam;
+        return !isDuplicate && !isSamePlayer && !currentTeamPlayers.includes(p);
       }
     });
   };
@@ -84,10 +81,12 @@ const DraggablePlayer = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenu>
-            <DropdownMenuTrigger className="cursor-pointer select-none hover:bg-gray-100 px-2 py-1 rounded inline-flex items-center gap-1">
-              <span>{player}</span>
-              <span className="text-xs text-gray-500">({gender})</span>
-              <Repeat className="h-3 w-3 text-gray-400" />
+            <DropdownMenuTrigger asChild>
+              <button type="button" className="cursor-pointer select-none hover:bg-gray-100 px-2 py-1 rounded inline-flex items-center gap-1">
+                <span>{player}</span>
+                <span className="text-xs text-gray-500">({gender})</span>
+                <Repeat className="h-3 w-3 text-gray-400" />
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               className="bg-white z-50"
