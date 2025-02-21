@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -14,15 +15,21 @@ const Home = () => {
           </p>
         </div>
 
-        <div className="mb-8 space-x-4">
-          <Link to="/scheduler" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
-            Scheduler
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <Link to="/scheduler" className="block">
+            <button className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-6 rounded-lg text-center">
+              Scheduler
+            </button>
           </Link>
-          <Link to="/participants" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
-            Participants
+          <Link to="/participants" className="block">
+            <button className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-6 rounded-lg text-center">
+              Participants
+            </button>
           </Link>
-          <Link to="/sessions" className="inline-block bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg">
-            Sessions
+          <Link to="/sessions" className="block">
+            <button className="w-full bg-primary hover:bg-primary/90 text-white py-3 px-6 rounded-lg text-center">
+              Sessions
+            </button>
           </Link>
         </div>
 

@@ -49,7 +49,6 @@ export default function Profile() {
 
   const fetchAvatarUrl = async () => {
     try {
-      // First try to get the URL from the participants table
       const { data: participant } = await supabase
         .from('participants')
         .select('avatar_url')
@@ -61,7 +60,6 @@ export default function Profile() {
         return
       }
 
-      // Fallback to checking storage directly
       const { data: files } = await supabase
         .storage
         .from('profile_pictures')
@@ -100,7 +98,6 @@ export default function Profile() {
       const filePath = `${user?.id}/avatar.jpg`
       setLoading(true)
 
-      // Delete old files first
       const { data: existingFiles } = await supabase
         .storage
         .from('profile_pictures')
@@ -113,7 +110,6 @@ export default function Profile() {
           .remove(existingFiles.map(file => `${user?.id}/${file.name}`))
       }
 
-      // Upload the cropped image to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('profile_pictures')
         .upload(filePath, croppedImageBlob, { 
@@ -125,7 +121,6 @@ export default function Profile() {
         throw uploadError
       }
 
-      // Get the public URL with timestamp to prevent caching
       const { data: urlData } = await supabase.storage
         .from('profile_pictures')
         .getPublicUrl(filePath)
@@ -135,7 +130,6 @@ export default function Profile() {
         const urlWithTimestamp = `${urlData.publicUrl}?v=${timestamp}`
         setAvatarUrl(urlWithTimestamp)
         
-        // Update participant record with avatar URL including timestamp
         const { error: updateError } = await supabase
           .from('participants')
           .update({ avatar_url: urlWithTimestamp })
@@ -143,7 +137,6 @@ export default function Profile() {
 
         if (updateError) throw updateError
 
-        // Force refresh the profile button by triggering a re-fetch
         await fetchAvatarUrl()
 
         toast({
@@ -204,7 +197,6 @@ export default function Profile() {
     setLoading(true)
 
     try {
-      // Update auth metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           full_name: `${formData.firstName} ${formData.lastName}`,
@@ -214,7 +206,6 @@ export default function Profile() {
 
       if (updateError) throw updateError
 
-      // Update participant record
       const { error: participantError } = await supabase
         .from('participants')
         .update({
@@ -294,7 +285,6 @@ export default function Profile() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Profile Picture Section */}
             <div className="flex flex-col items-center space-y-4">
               <div className="relative group">
                 <Avatar className="h-24 w-24 ring-2 ring-offset-2 ring-offset-background ring-muted">
@@ -391,53 +381,59 @@ export default function Profile() {
               />
             </div>
 
-            <div className="flex justify-between">
-              <Button type="submit" disabled={loading}>
+            <div className="w-full">
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Changes'}
               </Button>
-              <div className="space-x-2">
-                <Button type="button" variant="outline" onClick={handleResetPassword}>
-                  Reset Password
-                </Button>
-                <GradientButton 
-                  type="button"
-                  onClick={handleLogout}
-                  className="min-w-0 px-4 py-2 gradient-button-red"
-                >
-                  Logout
-                </GradientButton>
+            </div>
+
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Statistics</h3>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div>
+                  <p className="text-sm text-gray-500">Total Games</p>
+                  <p className="text-lg font-medium">{participant.total_games_played}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Win/Loss Record</p>
+                  <p className="text-lg font-medium">{participant.wins}/{participant.losses}</p>
+                </div>
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleResetPassword}
+                className="w-full"
+              >
+                Reset Password
+              </Button>
+              <GradientButton 
+                type="button"
+                onClick={handleLogout}
+                className="w-full gradient-button-red"
+              >
+                Logout
+              </GradientButton>
             </div>
           </form>
 
-          <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-900">Statistics</h3>
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Total Games</p>
-                <p className="text-lg font-medium">{participant.total_games_played}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Win/Loss Record</p>
-                <p className="text-lg font-medium">{participant.wins}/{participant.losses}</p>
-              </div>
-            </div>
-          </div>
+          {selectedImage && (
+            <CropImageModal
+              isOpen={cropModalOpen}
+              onClose={() => {
+                setCropModalOpen(false)
+                URL.revokeObjectURL(selectedImage)
+                setSelectedImage(null)
+              }}
+              imageSrc={selectedImage}
+              onCropComplete={handleCropComplete}
+            />
+          )}
         </CardContent>
       </Card>
-
-      {selectedImage && (
-        <CropImageModal
-          isOpen={cropModalOpen}
-          onClose={() => {
-            setCropModalOpen(false)
-            URL.revokeObjectURL(selectedImage)
-            setSelectedImage(null)
-          }}
-          imageSrc={selectedImage}
-          onCropComplete={handleCropComplete}
-        />
-      )}
     </div>
   )
-} 
+}
