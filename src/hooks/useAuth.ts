@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -52,4 +53,4 @@ export function useAuth() {
     signUp,
     signOut,
   };
-} 
+}

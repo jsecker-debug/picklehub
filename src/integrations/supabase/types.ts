@@ -95,6 +95,7 @@ export type Database = {
         Row: {
           created_at: string
           gender: string
+          group_id: string | null
           id: string
           level: number | null
           losses: number | null
@@ -102,11 +103,13 @@ export type Database = {
           rating_confidence: number | null
           rating_volatility: number | null
           total_games_played: number | null
+          user_id: string | null
           wins: number | null
         }
         Insert: {
           created_at?: string
           gender: string
+          group_id?: string | null
           id?: string
           level?: number | null
           losses?: number | null
@@ -114,11 +117,13 @@ export type Database = {
           rating_confidence?: number | null
           rating_volatility?: number | null
           total_games_played?: number | null
+          user_id?: string | null
           wins?: number | null
         }
         Update: {
           created_at?: string
           gender?: string
+          group_id?: string | null
           id?: string
           level?: number | null
           losses?: number | null
@@ -126,6 +131,7 @@ export type Database = {
           rating_confidence?: number | null
           rating_volatility?: number | null
           total_games_played?: number | null
+          user_id?: string | null
           wins?: number | null
         }
         Relationships: []
@@ -162,6 +168,7 @@ export type Database = {
       rotations: {
         Row: {
           created_at: string
+          group_id: string | null
           id: string
           is_king_court: boolean | null
           last_modified: string | null
@@ -171,6 +178,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          group_id?: string | null
           id?: string
           is_king_court?: boolean | null
           last_modified?: string | null
@@ -180,6 +188,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          group_id?: string | null
           id?: string
           is_king_court?: boolean | null
           last_modified?: string | null
@@ -201,6 +210,7 @@ export type Database = {
         Row: {
           created_at: string
           Date: string | null
+          group_id: string | null
           id: number
           scores_entered: boolean | null
           Status: string | null
@@ -209,6 +219,7 @@ export type Database = {
         Insert: {
           created_at?: string
           Date?: string | null
+          group_id?: string | null
           id?: number
           scores_entered?: boolean | null
           Status?: string | null
@@ -217,6 +228,7 @@ export type Database = {
         Update: {
           created_at?: string
           Date?: string | null
+          group_id?: string | null
           id?: number
           scores_entered?: boolean | null
           Status?: string | null
@@ -229,7 +241,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_group_member_emails: {
+        Args: {
+          group_id_param: string
+        }
+        Returns: {
+          user_id: string
+          email: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
