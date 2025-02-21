@@ -5,14 +5,14 @@ import { GradientButton } from '@/components/ui/gradient-button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { useMediaQuery } from '@/hooks/use-mobile'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function ProfileButton() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(0)
-  const isMobile = useMediaQuery('(max-width: 768px)')
+  const isMobile = useIsMobile()
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
 
