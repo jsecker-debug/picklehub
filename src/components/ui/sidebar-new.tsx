@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -42,7 +43,7 @@ export function Sidebar({
             "duration-200 transition-[width] ease-linear"
           )}
           animate={{
-            width: open ? "300px" : "76px", // Increased from 60px to 76px for better icon spacing
+            width: open ? "300px" : "76px",
           }}
           onMouseEnter={() => !isMobile && setOpen(true)}
           onMouseLeave={() => !isMobile && setOpen(false)}
@@ -56,7 +57,7 @@ export function Sidebar({
                   onClick={() => navigate(item.path)}
                   className={cn(
                     "flex items-center gap-4 p-3 rounded-lg transition-colors",
-                    "min-h-[44px]", // Ensure consistent height
+                    "min-h-[44px]",
                     location.pathname === item.path
                       ? "bg-primary text-white hover:bg-primary/90"
                       : "hover:bg-gray-100 text-neutral-700 dark:text-neutral-200"
@@ -96,10 +97,23 @@ export function Sidebar({
             >
               <div className="flex justify-between items-center mb-8">
                 <Logo />
-                <X
-                  className="text-neutral-800 dark:text-neutral-200 cursor-pointer h-6 w-6"
-                  onClick={() => setOpen(false)}
-                />
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 overflow-hidden rounded-full">
+                    <img 
+                      src="/lovable-uploads/cf3703d1-c0c1-4a3a-8b02-e2968f74d2de.png"
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onClick={() => {
+                        navigate('/profile');
+                        setOpen(false);
+                      }}
+                    />
+                  </div>
+                  <X
+                    className="text-neutral-800 dark:text-neutral-200 cursor-pointer h-6 w-6"
+                    onClick={() => setOpen(false)}
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-2">
                 {navigationItems.map((item, idx) => (

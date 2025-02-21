@@ -70,12 +70,11 @@ export function ProfileButton() {
 
   const handleClick = () => {
     navigate('/profile');
-    // Close mobile menu if it's open
-    const menuButton = document.querySelector('button[aria-label="Toggle menu"]');
-    if (menuButton && isMobile) {
-      (menuButton as HTMLButtonElement).click();
-    }
   };
+
+  if (isMobile) {
+    return null; // Don't render anything on mobile as it's handled in the sidebar
+  }
 
   return (
     <GradientButton
