@@ -7,6 +7,9 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { navigationItems } from "@/components/sidebar/navigation-items";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export function Sidebar({
   children,
@@ -17,8 +20,12 @@ export function Sidebar({
 }) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -28,6 +35,58 @@ export function Sidebar({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchAvatarUrl();
+    }
+  }, [user]);
+
+  const fetchAvatarUrl = async () => {
+    try {
+      // First try to get the URL from the participants table
+      const { data: participant } = await supabase
+        .from('participants')
+        .select('avatar_url')
+        .eq('id', user?.id)
+        .single();
+
+      if (participant?.avatar_url) {
+        // If URL already has a timestamp, use it as is
+        if (participant.avatar_url.includes('?v=')) {
+          setAvatarUrl(participant.avatar_url);
+        } else {
+          // Add timestamp to prevent caching
+          const timestamp = new Date().getTime();
+          setAvatarUrl(`${participant.avatar_url}?v=${timestamp}`);
+        }
+        return;
+      }
+
+      // Fallback to checking storage directly
+      const { data: files } = await supabase
+        .storage
+        .from('profile_pictures')
+        .list(`${user?.id}`, {
+          limit: 1,
+          sortBy: { column: 'name', order: 'desc' }
+        });
+
+      if (files && files.length > 0) {
+        const { data: urlData } = await supabase
+          .storage
+          .from('profile_pictures')
+          .getPublicUrl(`${user?.id}/${files[0].name}`);
+        
+        if (urlData?.publicUrl) {
+          const timestamp = new Date().getTime();
+          setAvatarUrl(`${urlData.publicUrl}?v=${timestamp}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching avatar URL:', error);
+    }
+  };
 
   return (
     <div
@@ -98,17 +157,21 @@ export function Sidebar({
               <div className="flex justify-between items-center mb-8">
                 <Logo />
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 overflow-hidden rounded-full">
-                    <img 
-                      src="/lovable-uploads/cf3703d1-c0c1-4a3a-8b02-e2968f74d2de.png"
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                      onClick={() => {
-                        navigate('/profile');
-                        setOpen(false);
-                      }}
+                  <Avatar 
+                    className="h-8 w-8 cursor-pointer"
+                    onClick={() => {
+                      navigate('/profile');
+                      setOpen(false);
+                    }}
+                  >
+                    <AvatarImage 
+                      src={avatarUrl || undefined} 
+                      className="object-cover"
                     />
-                  </div>
+                    <AvatarFallback className="text-sm bg-white/20 text-white">
+                      {userName[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <X
                     className="text-neutral-800 dark:text-neutral-200 cursor-pointer h-6 w-6"
                     onClick={() => setOpen(false)}
