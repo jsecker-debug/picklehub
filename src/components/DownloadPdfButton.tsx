@@ -43,10 +43,13 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const pageWidth = 297; // mm
       const pageHeight = 210; // mm
       
-      // Calculate margin and card dimensions
+      // Set margins and calculate available space
       const margin = 10; // mm
-      const cardWidth = pageWidth - (margin * 2);
-      const cardHeight = (pageHeight - (margin * 3)) / 2; // 3 margins for top, middle, and bottom
+      const availableWidth = pageWidth - (margin * 2);
+      const availableHeight = pageHeight - (margin * 2);
+      
+      // Allocate equal vertical space for two cards per page
+      const cardHeight = availableHeight / 2;
       
       // Process rotations two per page
       for (let i = 0; i < rotationCards.length; i += 2) {
@@ -57,7 +60,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         // First rotation on this page
         const card1 = rotationCards[i] as HTMLElement;
         
-        // Clone the card to modify it without affecting the UI
+        // Create a deep clone to avoid modifying the displayed UI
         const clonedCard1 = card1.cloneNode(true) as HTMLElement;
         
         // Hide score inputs and submit buttons in the cloned element
@@ -71,6 +74,10 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           (button as HTMLElement).style.display = 'none';
         });
         
+        // Set fixed width for consistent scaling
+        clonedCard1.style.width = '1000px'; // Fixed width for consistent aspect ratio
+        clonedCard1.style.maxWidth = '1000px';
+        
         // Create a temporary container for rendering
         const tempContainer1 = document.createElement('div');
         tempContainer1.appendChild(clonedCard1);
@@ -78,21 +85,39 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         tempContainer1.style.left = '-9999px';
         document.body.appendChild(tempContainer1);
         
+        // Capture the card with consistent scale
         const card1Canvas = await html2canvas(clonedCard1, {
           backgroundColor: "#ffffff",
           scale: 2,
+          logging: false,
+          allowTaint: true,
+          useCORS: true,
         });
         
         document.body.removeChild(tempContainer1);
+        
+        // Calculate aspect ratio to maintain proportions
+        const aspectRatio = card1Canvas.width / card1Canvas.height;
+        let imgWidth = availableWidth;
+        let imgHeight = imgWidth / aspectRatio;
+        
+        // If calculated height is greater than allocated space, resize based on height
+        if (imgHeight > cardHeight) {
+          imgHeight = cardHeight;
+          imgWidth = imgHeight * aspectRatio;
+        }
+        
+        // Center horizontally if the image is narrower than available width
+        const xPosition = margin + (availableWidth - imgWidth) / 2;
         
         // Add first rotation to PDF
         pdf.addImage(
           card1Canvas.toDataURL('image/png'), 
           'PNG', 
-          margin, // x position
-          margin, // y position
-          cardWidth, 
-          cardHeight
+          xPosition, // x position (centered)
+          margin, // y position (top margin)
+          imgWidth, 
+          imgHeight
         );
         
         // Add second rotation if available
@@ -113,6 +138,10 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             (button as HTMLElement).style.display = 'none';
           });
           
+          // Set fixed width for consistent scaling
+          clonedCard2.style.width = '1000px'; // Same fixed width for consistent aspect ratio
+          clonedCard2.style.maxWidth = '1000px';
+          
           // Create a temporary container for rendering
           const tempContainer2 = document.createElement('div');
           tempContainer2.appendChild(clonedCard2);
@@ -123,18 +152,35 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           const card2Canvas = await html2canvas(clonedCard2, {
             backgroundColor: "#ffffff",
             scale: 2,
+            logging: false,
+            allowTaint: true,
+            useCORS: true,
           });
           
           document.body.removeChild(tempContainer2);
           
-          // Add second rotation to PDF
+          // Calculate aspect ratio to maintain proportions
+          const aspectRatio2 = card2Canvas.width / card2Canvas.height;
+          let imgWidth2 = availableWidth;
+          let imgHeight2 = imgWidth2 / aspectRatio2;
+          
+          // If calculated height is greater than allocated space, resize based on height
+          if (imgHeight2 > cardHeight) {
+            imgHeight2 = cardHeight;
+            imgWidth2 = imgHeight2 * aspectRatio2;
+          }
+          
+          // Center horizontally if the image is narrower than available width
+          const xPosition2 = margin + (availableWidth - imgWidth2) / 2;
+          
+          // Add second rotation to PDF - position below first rotation
           pdf.addImage(
             card2Canvas.toDataURL('image/png'), 
             'PNG', 
-            margin, // x position
-            margin + cardHeight + margin, // y position (below first card with margin)
-            cardWidth, 
-            cardHeight
+            xPosition2, // x position (centered)
+            margin + cardHeight + margin/2, // y position (below first card with half margin between)
+            imgWidth2, 
+            imgHeight2
           );
         }
       }
@@ -154,7 +200,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
     >
       {children || (
         <>
-          <Download className="h-4 w-4" />
+          <Download className="h-4 w-4 mr-2" />
           Download PDF
         </>
       )}
