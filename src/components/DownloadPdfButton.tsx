@@ -25,8 +25,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const rotationCards = Array.from(element.querySelectorAll('.rotation-card'));
       
       if (rotationCards.length === 0) {
-        toast.error("No rotation cards found. Make sure rotation cards have the 'rotation-card' class.");
-        console.error("No rotation cards found in element with ID:", contentId);
+        toast.error("No rotation cards found");
         return;
       }
       
@@ -36,10 +35,9 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         format: 'a4'
       });
       
-      const pageWidth = 297; // mm
-      const pageHeight = 210; // mm
-      
-      const margin = 5; // mm (reduced from 10mm)
+      const pageWidth = 297;
+      const pageHeight = 210;
+      const margin = 5;
       const availableWidth = pageWidth - (margin * 2);
       const availableHeight = pageHeight - (margin * 2);
       
@@ -49,33 +47,20 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         }
         
         const card1 = rotationCards[i] as HTMLElement;
-        
         const clonedCard1 = card1.cloneNode(true) as HTMLElement;
         
-        const scoreInputs1 = clonedCard1.querySelectorAll('.ScoreInput, [class*="ScoreInput"]');
-        scoreInputs1.forEach(input => {
-          (input as HTMLElement).style.display = 'none';
-        });
+        const scoreElements1 = clonedCard1.querySelectorAll('.ScoreInput, [class*="ScoreInput"], button[type="submit"], [class*="score"], .score-input');
+        scoreElements1.forEach(el => (el as HTMLElement).style.display = 'none');
         
-        const submitButtons1 = clonedCard1.querySelectorAll('button[type="submit"]');
-        submitButtons1.forEach(button => {
-          (button as HTMLElement).style.display = 'none';
-        });
-        
-        const textElements1 = clonedCard1.querySelectorAll('h2, h3, p, label, span');
+        const textElements1 = clonedCard1.querySelectorAll('h2, h3, p, label, span, div');
         textElements1.forEach(el => {
           const element = el as HTMLElement;
-          if (element.style.fontSize) {
-            const currentSize = parseFloat(element.style.fontSize);
-            element.style.fontSize = `${currentSize * 1.2}px`;
-          } else {
-            element.style.fontSize = '120%';
-          }
+          element.style.fontSize = '150%';
           element.style.fontWeight = 'bold';
         });
         
-        clonedCard1.style.width = '1200px';
-        clonedCard1.style.maxWidth = '1200px';
+        clonedCard1.style.width = '1500px';
+        clonedCard1.style.maxWidth = '1500px';
         
         const tempContainer1 = document.createElement('div');
         tempContainer1.appendChild(clonedCard1);
@@ -85,7 +70,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         
         const card1Canvas = await html2canvas(clonedCard1, {
           backgroundColor: "#ffffff",
-          scale: 3,
+          scale: 4,
           logging: false,
           allowTaint: true,
           useCORS: true,
@@ -94,8 +79,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         document.body.removeChild(tempContainer1);
         
         const aspectRatio = card1Canvas.width / card1Canvas.height;
-        
-        let imgHeight = (availableHeight / 2) - 2;
+        let imgHeight = (availableHeight / 2) - 4;
         let imgWidth = imgHeight * aspectRatio;
         
         if (imgWidth > availableWidth) {
@@ -106,8 +90,8 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         const xPosition = margin + (availableWidth - imgWidth) / 2;
         
         pdf.addImage(
-          card1Canvas.toDataURL('image/png'), 
-          'PNG', 
+          card1Canvas.toDataURL('image/png'),
+          'PNG',
           xPosition,
           margin,
           imgWidth,
@@ -116,33 +100,20 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         
         if (i + 1 < rotationCards.length) {
           const card2 = rotationCards[i + 1] as HTMLElement;
-          
           const clonedCard2 = card2.cloneNode(true) as HTMLElement;
           
-          const scoreInputs2 = clonedCard2.querySelectorAll('.ScoreInput, [class*="ScoreInput"]');
-          scoreInputs2.forEach(input => {
-            (input as HTMLElement).style.display = 'none';
-          });
+          const scoreElements2 = clonedCard2.querySelectorAll('.ScoreInput, [class*="ScoreInput"], button[type="submit"], [class*="score"], .score-input');
+          scoreElements2.forEach(el => (el as HTMLElement).style.display = 'none');
           
-          const submitButtons2 = clonedCard2.querySelectorAll('button[type="submit"]');
-          submitButtons2.forEach(button => {
-            (button as HTMLElement).style.display = 'none';
-          });
-          
-          const textElements2 = clonedCard2.querySelectorAll('h2, h3, p, label, span');
+          const textElements2 = clonedCard2.querySelectorAll('h2, h3, p, label, span, div');
           textElements2.forEach(el => {
             const element = el as HTMLElement;
-            if (element.style.fontSize) {
-              const currentSize = parseFloat(element.style.fontSize);
-              element.style.fontSize = `${currentSize * 1.2}px`;
-            } else {
-              element.style.fontSize = '120%';
-            }
+            element.style.fontSize = '150%';
             element.style.fontWeight = 'bold';
           });
           
-          clonedCard2.style.width = '1200px';
-          clonedCard2.style.maxWidth = '1200px';
+          clonedCard2.style.width = '1500px';
+          clonedCard2.style.maxWidth = '1500px';
           
           const tempContainer2 = document.createElement('div');
           tempContainer2.appendChild(clonedCard2);
@@ -152,7 +123,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           
           const card2Canvas = await html2canvas(clonedCard2, {
             backgroundColor: "#ffffff",
-            scale: 3,
+            scale: 4,
             logging: false,
             allowTaint: true,
             useCORS: true,
@@ -161,8 +132,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           document.body.removeChild(tempContainer2);
           
           const aspectRatio2 = card2Canvas.width / card2Canvas.height;
-          
-          let imgHeight2 = (availableHeight / 2) - 2;
+          let imgHeight2 = (availableHeight / 2) - 4;
           let imgWidth2 = imgHeight2 * aspectRatio2;
           
           if (imgWidth2 > availableWidth) {
@@ -171,12 +141,13 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           }
           
           const xPosition2 = margin + (availableWidth - imgWidth2) / 2;
+          const yPosition2 = margin + imgHeight + 8;
           
           pdf.addImage(
-            card2Canvas.toDataURL('image/png'), 
-            'PNG', 
+            card2Canvas.toDataURL('image/png'),
+            'PNG',
             xPosition2,
-            margin + imgHeight + 4,
+            yPosition2,
             imgWidth2,
             imgHeight2
           );
