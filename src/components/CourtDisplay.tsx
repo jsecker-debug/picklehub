@@ -120,42 +120,91 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   };
 
   return (
-    <div className="space-y-8">
-      <div id="court-rotations" className="bg-white">
-        {localRotations.map((rotation, idx) => (
-          <Card key={idx} className="p-6 mb-6 bg-white">
-            <h2 className="text-xl font-semibold mb-4 text-primary">
-              {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
-            </h2>
+    <div className="space-y-12">
+      <div id="court-rotations">
+        {localRotations.map((rotation, rotationIdx) => (
+          <Card key={rotationIdx} className="p-6 mb-10 bg-white">
+            <div className="mb-6 flex items-center gap-4">
+              <div className="flex items-center justify-center w-16 h-16 text-4xl font-bold bg-primary text-white rounded-full">
+                {rotationIdx + 1}
+              </div>
+              <h2 className="text-3xl font-semibold text-primary">
+                {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${rotationIdx + 1}`}
+              </h2>
+            </div>
             
-            <div className="grid gap-6 md:grid-cols-2">
-              {rotation.courts.map((court, courtIdx) => (
-                <CourtCard
-                  key={courtIdx}
-                  court={court}
-                  courtIndex={courtIdx}
-                  rotationIndex={idx}
-                  onDragStart={handleDragStart}
-                  playerGenders={Object.fromEntries(
-                    Object.entries(players).map(([name, data]) => [name, data.gender])
-                  )}
-                  showScores={sessionStatus === 'Ready' && !isKingCourt}
-                  scores={scores[`${idx}-${courtIdx}`] || { team1: '', team2: '' }}
-                  onScoreChange={(team, value) => handleScoreChange(idx, courtIdx, team, value)}
-                  onSubmitScore={() => handleSubmitScore(idx, courtIdx, court)}
-                  allCourts={rotation.courts}
-                  restingPlayers={rotation.resters}
-                />
-              ))}
+            <div className="overflow-x-auto pb-4">
+              <div className="min-w-max">
+                <div className="grid grid-cols-[auto_repeat(auto-fill,minmax(300px,1fr))] gap-4">
+                  {/* First column with rotation labels */}
+                  <div className="flex flex-col gap-4 pr-4">
+                    <div className="h-12 font-semibold text-xl flex items-end pb-2">Court</div>
+                    <div className="text-center font-semibold text-lg mb-2 py-2">Team 1</div>
+                    <div className="text-center font-semibold text-xl py-4">VS</div>
+                    <div className="text-center font-semibold text-lg mt-2 py-2">Team 2</div>
+                  </div>
+                  
+                  {/* Court columns */}
+                  {rotation.courts.map((court, courtIdx) => (
+                    <div key={courtIdx} className="flex flex-col gap-4">
+                      <div className="h-12 bg-gray-100 rounded-t-lg text-center text-xl font-semibold flex items-center justify-center">
+                        Court {courtIdx + 1}
+                      </div>
+                      <div className="bg-green-100 p-4 rounded-lg text-center min-h-[120px] flex flex-col justify-center">
+                        {court.team1.map((player, idx) => (
+                          <div key={idx} className="text-lg font-medium mb-1">{player}</div>
+                        ))}
+                      </div>
+                      <div className="text-center font-bold text-2xl">VS</div>
+                      <div className="bg-blue-100 p-4 rounded-lg text-center min-h-[120px] flex flex-col justify-center">
+                        {court.team2.map((player, idx) => (
+                          <div key={idx} className="text-lg font-medium mb-1">{player}</div>
+                        ))}
+                      </div>
+                      
+                      {sessionStatus === 'Ready' && !isKingCourt && (
+                        <div className="mt-4 flex gap-2">
+                          <input 
+                            type="number" 
+                            className="flex-1 p-2 border rounded text-lg"
+                            placeholder="Team 1"
+                            value={scores[`${rotationIdx}-${courtIdx}`]?.team1 || ''}
+                            onChange={(e) => handleScoreChange(rotationIdx, courtIdx, 'team1', e.target.value)}
+                          />
+                          <input 
+                            type="number" 
+                            className="flex-1 p-2 border rounded text-lg"
+                            placeholder="Team 2"
+                            value={scores[`${rotationIdx}-${courtIdx}`]?.team2 || ''}
+                            onChange={(e) => handleScoreChange(rotationIdx, courtIdx, 'team2', e.target.value)}
+                          />
+                          <button 
+                            className="px-4 py-2 bg-primary text-white rounded text-lg"
+                            onClick={() => handleSubmitScore(rotationIdx, courtIdx, court)}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <RestingPlayers 
-              resters={rotation.resters} 
-              players={players}
-              rotationIndex={idx}
-              onDragStart={handleDragStart}
-              allCourts={rotation.courts}
-            />
+            <div className="mt-8 p-4 bg-gray-100 rounded-lg">
+              <h3 className="text-2xl font-semibold mb-4">Sitting Out</h3>
+              <div className="flex flex-wrap gap-3">
+                {rotation.resters.map((player, idx) => (
+                  <div key={idx} className="bg-yellow-100 px-4 py-2 rounded-lg text-lg">
+                    {player}
+                  </div>
+                ))}
+                {rotation.resters.length === 0 && (
+                  <div className="text-gray-500 text-lg">No players sitting out in this rotation</div>
+                )}
+              </div>
+            </div>
           </Card>
         ))}
       </div>

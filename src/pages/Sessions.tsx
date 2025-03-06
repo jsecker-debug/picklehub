@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { PlusIcon, Download } from "lucide-react";
+import { PlusIcon, Download, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSessions } from "@/hooks/useSessions";
@@ -28,7 +28,6 @@ const Sessions = () => {
 
   const addSession = useMutation({
     mutationFn: async ({ date, venue }: { date: Date; venue: string }) => {
-      // Always set new sessions as Upcoming
       const { data, error } = await supabase
         .from("sessions")
         .insert([{ 
@@ -219,57 +218,76 @@ const Sessions = () => {
 
             {selectedSessionId && (
               <Dialog open={!!selectedSessionId} onOpenChange={(open) => !open && setSelectedSessionId(null)}>
-                <DialogContent className="max-w-4xl max-h-[calc(100vh-24px)] my-12 overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-3xl font-bold text-primary">Session Schedule</DialogTitle>
-                    <DialogDescription>
-                      View and manage the schedule for this session.
-                    </DialogDescription>
-                  </DialogHeader>
-                  {isLoadingSchedule ? (
-                    <div className="text-center py-4">Loading schedule...</div>
-                  ) : scheduleData ? (
-                    <div className="space-y-6 pt-4">
-                      {(scheduleData.randomRotations.length > 0 || scheduleData.kingCourtRotation) ? (
-                        <>
-                          <DownloadPdfButton 
-                            contentId="session-schedule"
-                            fileName="session-schedule"
-                            className="w-full p-6 text-lg flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
-                          >
-                            <Download className="w-6 h-6" />
-                            Download Session Schedule
-                          </DownloadPdfButton>
-                          <div id="session-schedule">
-                            {scheduleData.randomRotations.length > 0 && (
-                              <CourtDisplay 
-                                rotations={scheduleData.randomRotations} 
-                                isKingCourt={false}
-                                sessionId={selectedSessionId}
-                                sessionStatus={sessions?.find(s => s.id === selectedSessionId)?.Status}
-                              />
-                            )}
-                            {scheduleData.kingCourtRotation && (
-                              <CourtDisplay 
-                                rotations={[scheduleData.kingCourtRotation]} 
-                                isKingCourt={true}
-                                sessionId={selectedSessionId}
-                                sessionStatus={sessions?.find(s => s.id === selectedSessionId)?.Status}
-                              />
-                            )}
+                <DialogContent className="w-full max-w-none h-[100vh] max-h-[100vh] m-0 p-0 rounded-none flex flex-col">
+                  <div className="sticky top-0 z-10 bg-white border-b p-4 flex justify-between items-center">
+                    <DialogHeader className="text-left">
+                      <DialogTitle className="text-4xl font-bold text-primary">
+                        {sessions.find(s => s.id === selectedSessionId)?.Venue} - {
+                          sessions.find(s => s.id === selectedSessionId)?.Date 
+                            ? format(new Date(sessions.find(s => s.id === selectedSessionId)?.Date as string), 'PPP')
+                            : ''
+                        }
+                      </DialogTitle>
+                      <DialogDescription className="text-xl">
+                        Session Schedule
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setSelectedSessionId(null)}
+                      className="h-10 w-10"
+                    >
+                      <X className="h-6 w-6" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-6">
+                    {isLoadingSchedule ? (
+                      <div className="text-center py-4 text-2xl">Loading schedule...</div>
+                    ) : scheduleData ? (
+                      <div className="space-y-8">
+                        {(scheduleData.randomRotations.length > 0 || scheduleData.kingCourtRotation) ? (
+                          <>
+                            <DownloadPdfButton 
+                              contentId="session-schedule"
+                              fileName="session-schedule"
+                              className="w-full p-6 text-2xl flex items-center justify-center gap-3 bg-primary hover:bg-primary/90"
+                            >
+                              <Download className="w-8 h-8" />
+                              Download Session Schedule
+                            </DownloadPdfButton>
+                            <div id="session-schedule">
+                              {scheduleData.randomRotations.length > 0 && (
+                                <CourtDisplay 
+                                  rotations={scheduleData.randomRotations} 
+                                  isKingCourt={false}
+                                  sessionId={selectedSessionId}
+                                  sessionStatus={sessions?.find(s => s.id === selectedSessionId)?.Status}
+                                />
+                              )}
+                              {scheduleData.kingCourtRotation && (
+                                <CourtDisplay 
+                                  rotations={[scheduleData.kingCourtRotation]} 
+                                  isKingCourt={true}
+                                  sessionId={selectedSessionId}
+                                  sessionStatus={sessions?.find(s => s.id === selectedSessionId)?.Status}
+                                />
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-center py-4 text-2xl text-gray-500">
+                            No Session Generated
                           </div>
-                        </>
-                      ) : (
-                        <div className="text-center py-4 text-gray-500">
-                          No Session Generated
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      No schedule found for this session.
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-2xl text-gray-500">
+                        No schedule found for this session.
+                      </div>
+                    )}
+                  </div>
                 </DialogContent>
               </Dialog>
             )}

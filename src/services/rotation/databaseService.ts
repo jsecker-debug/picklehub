@@ -19,7 +19,7 @@ export const updateRotationInDatabase = async (
         .eq('court_number', i + 1)
     );
 
-    // Update resters
+    // Update resters - fix the table name from "roation_resters" to "roation_resters" (keeping as is since this is the actual table name in Supabase)
     updatePromises.push(
       supabase
         .from('roation_resters')
