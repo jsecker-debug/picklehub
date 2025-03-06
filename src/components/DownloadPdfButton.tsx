@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
-import { Court } from "@/types/scheduler";
 
 interface DownloadPdfButtonProps {
   contentId: string;
@@ -157,3 +156,4 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
 };
 
 export default DownloadPdfButton;
+
