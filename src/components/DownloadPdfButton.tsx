@@ -43,13 +43,10 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const pageWidth = 297; // mm
       const pageHeight = 210; // mm
       
-      // Set margins and calculate available space
-      const margin = 10; // mm
+      // Set smaller margins to utilize more page space
+      const margin = 5; // mm (reduced from 10mm)
       const availableWidth = pageWidth - (margin * 2);
       const availableHeight = pageHeight - (margin * 2);
-      
-      // Allocate equal vertical space for two cards per page
-      const cardHeight = availableHeight / 2;
       
       // Process rotations two per page
       for (let i = 0; i < rotationCards.length; i += 2) {
@@ -74,9 +71,25 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           (button as HTMLElement).style.display = 'none';
         });
         
-        // Set fixed width for consistent scaling
-        clonedCard1.style.width = '1000px'; // Fixed width for consistent aspect ratio
-        clonedCard1.style.maxWidth = '1000px';
+        // Increase text size for better readability in PDF
+        const textElements1 = clonedCard1.querySelectorAll('h2, h3, p, label, span');
+        textElements1.forEach(el => {
+          const element = el as HTMLElement;
+          // Increase font size by 20%
+          if (element.style.fontSize) {
+            const currentSize = parseFloat(element.style.fontSize);
+            element.style.fontSize = `${currentSize * 1.2}px`;
+          } else {
+            // If no explicit font size, make it slightly larger
+            element.style.fontSize = '120%';
+          }
+          // Make text bolder for better visibility
+          element.style.fontWeight = 'bold';
+        });
+        
+        // Set fixed width for consistent scaling - wider to fill more of the page
+        clonedCard1.style.width = '1200px'; // Increased from 1000px
+        clonedCard1.style.maxWidth = '1200px';
         
         // Create a temporary container for rendering
         const tempContainer1 = document.createElement('div');
@@ -85,10 +98,10 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         tempContainer1.style.left = '-9999px';
         document.body.appendChild(tempContainer1);
         
-        // Capture the card with consistent scale
+        // Capture the card with higher quality
         const card1Canvas = await html2canvas(clonedCard1, {
           backgroundColor: "#ffffff",
-          scale: 2,
+          scale: 3, // Increased from 2 for higher quality
           logging: false,
           allowTaint: true,
           useCORS: true,
@@ -98,19 +111,22 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         
         // Calculate aspect ratio to maintain proportions
         const aspectRatio = card1Canvas.width / card1Canvas.height;
-        let imgWidth = availableWidth;
-        let imgHeight = imgWidth / aspectRatio;
         
-        // If calculated height is greater than allocated space, resize based on height
-        if (imgHeight > cardHeight) {
-          imgHeight = cardHeight;
-          imgWidth = imgHeight * aspectRatio;
+        // Calculate dimensions to fill page better
+        // Make the card take up almost half the page height with proper margins
+        const imgHeight = (availableHeight / 2) - 2; // Subtract 2mm for spacing between cards
+        let imgWidth = imgHeight * aspectRatio;
+        
+        // If width is too large, scale down based on width
+        if (imgWidth > availableWidth) {
+          imgWidth = availableWidth;
+          imgHeight = imgWidth / aspectRatio;
         }
         
-        // Center horizontally if the image is narrower than available width
+        // Center horizontally
         const xPosition = margin + (availableWidth - imgWidth) / 2;
         
-        // Add first rotation to PDF
+        // Add first rotation to PDF - positioned at top
         pdf.addImage(
           card1Canvas.toDataURL('image/png'), 
           'PNG', 
@@ -127,7 +143,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           // Clone the card to modify it without affecting the UI
           const clonedCard2 = card2.cloneNode(true) as HTMLElement;
           
-          // Hide score inputs and submit buttons in the cloned element
+          // Hide score inputs and submit buttons
           const scoreInputs2 = clonedCard2.querySelectorAll('.ScoreInput, [class*="ScoreInput"]');
           scoreInputs2.forEach(input => {
             (input as HTMLElement).style.display = 'none';
@@ -138,9 +154,25 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             (button as HTMLElement).style.display = 'none';
           });
           
-          // Set fixed width for consistent scaling
-          clonedCard2.style.width = '1000px'; // Same fixed width for consistent aspect ratio
-          clonedCard2.style.maxWidth = '1000px';
+          // Increase text size for better readability
+          const textElements2 = clonedCard2.querySelectorAll('h2, h3, p, label, span');
+          textElements2.forEach(el => {
+            const element = el as HTMLElement;
+            // Increase font size by 20%
+            if (element.style.fontSize) {
+              const currentSize = parseFloat(element.style.fontSize);
+              element.style.fontSize = `${currentSize * 1.2}px`;
+            } else {
+              // If no explicit font size, make it slightly larger
+              element.style.fontSize = '120%';
+            }
+            // Make text bolder for better visibility
+            element.style.fontWeight = 'bold';
+          });
+          
+          // Set fixed width for consistent scaling - wider to fill more of the page
+          clonedCard2.style.width = '1200px'; // Increased from 1000px
+          clonedCard2.style.maxWidth = '1200px';
           
           // Create a temporary container for rendering
           const tempContainer2 = document.createElement('div');
@@ -151,7 +183,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           
           const card2Canvas = await html2canvas(clonedCard2, {
             backgroundColor: "#ffffff",
-            scale: 2,
+            scale: 3, // Increased from 2 for higher quality
             logging: false,
             allowTaint: true,
             useCORS: true,
@@ -161,24 +193,27 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           
           // Calculate aspect ratio to maintain proportions
           const aspectRatio2 = card2Canvas.width / card2Canvas.height;
-          let imgWidth2 = availableWidth;
-          let imgHeight2 = imgWidth2 / aspectRatio2;
           
-          // If calculated height is greater than allocated space, resize based on height
-          if (imgHeight2 > cardHeight) {
-            imgHeight2 = cardHeight;
-            imgWidth2 = imgHeight2 * aspectRatio2;
+          // Calculate dimensions to fill page better
+          // Make the card take up almost half the page height with proper margins
+          const imgHeight2 = (availableHeight / 2) - 2; // Subtract 2mm for spacing
+          let imgWidth2 = imgHeight2 * aspectRatio2;
+          
+          // If width is too large, scale down based on width
+          if (imgWidth2 > availableWidth) {
+            imgWidth2 = availableWidth;
+            imgHeight2 = imgWidth2 / aspectRatio2;
           }
           
-          // Center horizontally if the image is narrower than available width
+          // Center horizontally
           const xPosition2 = margin + (availableWidth - imgWidth2) / 2;
           
-          // Add second rotation to PDF - position below first rotation
+          // Add second rotation to PDF - position at bottom half of page with slight spacing
           pdf.addImage(
             card2Canvas.toDataURL('image/png'), 
             'PNG', 
             xPosition2, // x position (centered)
-            margin + cardHeight + margin/2, // y position (below first card with half margin between)
+            margin + imgHeight + 4, // y position (below first card with spacing)
             imgWidth2, 
             imgHeight2
           );
