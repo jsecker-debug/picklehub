@@ -22,11 +22,11 @@ const Sessions = () => {
 
   return (
     <div className="h-full bg-gray-50">
-      <div className="max-w-full mx-auto py-20 px-6">
-        <div className="mb-6 flex justify-between items-center">
+      <div className="max-w-full mx-auto py-8 sm:py-20 px-4 sm:px-6">
+        <div className="mb-4 sm:mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-primary font-anybody">Sessions</h1>
-            <p className="text-gray-600 mt-2">Manage your pickleball sessions</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-primary font-anybody">Sessions</h1>
+            <p className="text-gray-600 mt-1 sm:mt-2">Manage your pickleball sessions</p>
           </div>
           <AddSessionDialog 
             open={isDialogOpen}
