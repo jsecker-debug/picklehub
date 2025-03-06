@@ -41,7 +41,8 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const pageWidth = 297;
       const pageHeight = 210;
       const margin = 15;
-      const rotationHeight = (pageHeight - (margin * 3)) / 2;
+      // Increased rotation height to make more room for resting players
+      const rotationHeight = (pageHeight - (margin * 2.5)) / 2;
 
       // Function to render a single rotation
       const renderRotation = (card: Element, yPosition: number, rotationIndex: number) => {
@@ -113,7 +114,8 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           if (resterButtons.length > 0) {
             pdf.setFontSize(16); // Increased from 12
             pdf.setFont("helvetica", "bold");
-            const restersY = yPosition + rotationHeight - 20; // Adjusted position
+            // Adjust position to be higher up to make room for multiple rows
+            const restersY = yPosition + rotationHeight - 35;
             pdf.text("Resting Players:", margin, restersY);
             
             // Extract names and genders
@@ -125,7 +127,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             
             // Split resting players into chunks for better display
             const chunkedResters = [];
-            const chunk = 2; // Number of names per row
+            const chunk = 3; // Increased from 2 - More names per row
             
             for (let i = 0; i < resterNames.length; i += chunk) {
               chunkedResters.push(resterNames.slice(i, i + chunk));
@@ -136,15 +138,15 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             
             // Display resting players in multiple rows if needed
             chunkedResters.forEach((namesChunk, idx) => {
-              pdf.text(namesChunk.join(", "), margin + 10, restersY + (idx + 1) * 7);
+              pdf.text(namesChunk.join(", "), margin + 10, restersY + (idx + 1) * 8);
             });
           }
         }
 
-        // Draw border around rotation
-        pdf.setDrawColor(200, 200, 200);
-        pdf.setLineWidth(0.5);
-        pdf.rect(margin, yPosition, pageWidth - (margin * 2), rotationHeight - margin);
+        // Draw border around rotation - made taller
+        pdf.setDrawColor(100, 100, 100); // Darker border
+        pdf.setLineWidth(0.7); // Thicker border
+        pdf.rect(margin, yPosition, pageWidth - (margin * 2), rotationHeight);
       };
 
       // Generate PDF with two rotations per page
@@ -153,10 +155,10 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           pdf.addPage();
         }
 
-        // Render first rotation on top half
+        // Render first rotation on top half - adjusted positions
         renderRotation(rotationCards[i], margin, i);
 
-        // Render second rotation on bottom half if available
+        // Render second rotation on bottom half if available - adjusted positions
         if (i + 1 < rotationCards.length) {
           renderRotation(rotationCards[i + 1], pageHeight / 2 + margin / 2, i + 1);
         }
