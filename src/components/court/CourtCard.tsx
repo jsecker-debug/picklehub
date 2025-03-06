@@ -39,11 +39,11 @@ const CourtCard = ({
   restingPlayers,
 }: CourtCardProps) => {
   return (
-    <Card className="p-4 border-2 border-accent/20 bg-white">
-      <h3 className="text-lg font-medium mb-3 text-primary">
+    <Card className="p-5 border-2 border-accent/30 bg-white shadow-md hover:shadow-lg transition-shadow">
+      <h3 className="text-2xl font-bold mb-4 text-primary bg-accent/10 py-2 px-3 rounded-lg">
         Court {courtIndex + 1}
       </h3>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <TeamDisplay
           label="Team 1"
           players={court.team1}

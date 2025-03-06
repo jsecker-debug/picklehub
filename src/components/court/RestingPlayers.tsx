@@ -1,6 +1,6 @@
 
 import { PlayerData } from "@/types/court-display";
-import { Court } from "@/types/scheduler"; // Add this import
+import { Court } from "@/types/scheduler";
 import DraggablePlayer from "../DraggablePlayer";
 
 interface RestingPlayersProps {
@@ -26,9 +26,9 @@ const RestingPlayers = ({
   if (resters.length === 0) return null;
 
   return (
-    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-      <span className="font-medium text-gray-600">Resting:</span>{" "}
-      <span className="space-x-2">
+    <div className="mt-6 p-5 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
+      <h3 className="text-xl font-semibold text-amber-700 mb-3">Resting Players:</h3>
+      <div className="flex flex-wrap gap-3">
         {resters.map((player, idx) => (
           <DraggablePlayer
             key={idx}
@@ -42,7 +42,7 @@ const RestingPlayers = ({
             restingPlayers={resters}
           />
         ))}
-      </span>
+      </div>
     </div>
   );
 };

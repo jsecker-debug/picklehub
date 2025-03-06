@@ -1,3 +1,4 @@
+
 import {
   Tooltip,
   TooltipContent,
@@ -76,16 +77,26 @@ const DraggablePlayer = ({
 
   const availablePlayers = getAvailablePlayers();
 
+  // Determine background color based on gender
+  const getBgColor = () => {
+    if (gender === 'F') return 'bg-pink-100 hover:bg-pink-200';
+    if (gender === 'M') return 'bg-blue-100 hover:bg-blue-200';
+    return 'bg-purple-100 hover:bg-purple-200';
+  };
+
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" className="cursor-pointer select-none hover:bg-gray-100 px-2 py-1 rounded inline-flex items-center gap-1">
+              <button 
+                type="button" 
+                className={`cursor-pointer select-none px-3 py-2 rounded-lg text-lg font-medium shadow-sm ${getBgColor()} inline-flex items-center gap-1`}
+              >
                 <span>{player}</span>
-                <span className="text-xs text-gray-500">({gender})</span>
-                <Repeat className="h-3 w-3 text-gray-400" />
+                <span className="text-sm text-gray-500 ml-1">({gender})</span>
+                <Repeat className="h-4 w-4 text-gray-500 ml-1" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
@@ -96,7 +107,7 @@ const DraggablePlayer = ({
                 <DropdownMenuItem
                   key={p}
                   onClick={() => handleClick(p)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 text-base"
                 >
                   <span>{p}</span>
                 </DropdownMenuItem>

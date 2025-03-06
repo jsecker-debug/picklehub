@@ -37,10 +37,17 @@ const TeamDisplay = ({
     return [...acc, ...court.team1, ...court.team2];
   }, []);
 
+  // Determine background color based on team type
+  const getBgColor = () => {
+    return teamType === 'team1' 
+      ? 'bg-blue-50 hover:bg-blue-100' 
+      : 'bg-green-50 hover:bg-green-100';
+  };
+
   return (
-    <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
-      <span className="text-sm text-gray-600">{label}:</span>
-      <span className="font-medium space-x-2">
+    <div className={`flex justify-between items-center p-3 rounded-md border ${getBgColor()} shadow-sm`}>
+      <span className="text-lg font-semibold text-gray-700">{label}:</span>
+      <div className="flex flex-wrap gap-2 justify-end">
         {players.map((player, playerIdx) => (
           <DraggablePlayer
             key={playerIdx}
@@ -54,7 +61,7 @@ const TeamDisplay = ({
             restingPlayers={restingPlayers}
           />
         ))}
-      </span>
+      </div>
     </div>
   );
 };
