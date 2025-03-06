@@ -46,7 +46,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       // Function to render a single rotation
       const renderRotation = (card: Element, yPosition: number, rotationIndex: number) => {
         // Draw rotation header
-        pdf.setFontSize(16);
+        pdf.setFontSize(20); // Increased from 16
         pdf.setFont("helvetica", "bold");
         pdf.text(`Rotation ${rotationIndex + 1}`, margin, yPosition + 10);
 
@@ -67,7 +67,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           // Court header (find the h3 element with "Court X" text)
           const courtHeader = courtElement.querySelector('h3');
           if (courtHeader) {
-            pdf.setFontSize(14);
+            pdf.setFontSize(18); // Increased from 14
             pdf.setFont("helvetica", "bold");
             pdf.text(courtHeader.textContent || `Court ${courtIdx + 1}`, courtX, courtY);
           }
@@ -80,17 +80,17 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             // Team header
             const teamHeader = teamElement.querySelector('span');
             if (teamHeader) {
-              pdf.setFontSize(12);
+              pdf.setFontSize(16); // Increased from 12
               pdf.setFont("helvetica", "bold");
               pdf.text(teamHeader.textContent || `Team ${teamIdx + 1}`, courtX, courtY);
             }
-            courtY += 7;
+            courtY += 8; // Increased from 7
 
             // Get player buttons (they have specific background colors)
             const playerButtons = Array.from(teamElement.querySelectorAll('button'));
             
             // Players
-            pdf.setFontSize(11);
+            pdf.setFontSize(14); // Increased from 11
             pdf.setFont("helvetica", "normal");
             playerButtons.forEach(button => {
               const playerName = button.querySelector('span')?.textContent;
@@ -98,11 +98,11 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
               
               if (playerName) {
                 pdf.text(`${playerName} (${playerGender || '?'})`, courtX + 5, courtY);
-                courtY += 6;
+                courtY += 7; // Increased from 6
               }
             });
             
-            courtY += 4; // Space between teams
+            courtY += 5; // Increased from 4 - Space between teams
           });
         });
 
@@ -111,22 +111,33 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         if (restersSection) {
           const resterButtons = Array.from(restersSection.querySelectorAll('button'));
           if (resterButtons.length > 0) {
-            pdf.setFontSize(12);
+            pdf.setFontSize(16); // Increased from 12
             pdf.setFont("helvetica", "bold");
-            const restersY = yPosition + rotationHeight - 15;
+            const restersY = yPosition + rotationHeight - 20; // Adjusted position
             pdf.text("Resting Players:", margin, restersY);
             
-            const resters = resterButtons
-              .map(button => {
-                const name = button.querySelector('span')?.textContent;
-                const gender = button.textContent?.match(/\(([^)]+)\)/)?.[1];
-                return name ? `${name} (${gender || '?'})` : null;
-              })
-              .filter(Boolean);
-
+            // Extract names and genders
+            const resterNames = resterButtons.map(button => {
+              const name = button.querySelector('span')?.textContent;
+              const gender = button.textContent?.match(/\(([^)]+)\)/)?.[1];
+              return name ? `${name} (${gender || '?'})` : null;
+            }).filter(Boolean);
+            
+            // Split resting players into chunks for better display
+            const chunkedResters = [];
+            const chunk = 2; // Number of names per row
+            
+            for (let i = 0; i < resterNames.length; i += chunk) {
+              chunkedResters.push(resterNames.slice(i, i + chunk));
+            }
+            
             pdf.setFont("helvetica", "normal");
-            pdf.setFontSize(11);
-            pdf.text(resters.join(", "), margin + 30, restersY);
+            pdf.setFontSize(14); // Increased from 11
+            
+            // Display resting players in multiple rows if needed
+            chunkedResters.forEach((namesChunk, idx) => {
+              pdf.text(namesChunk.join(", "), margin + 10, restersY + (idx + 1) * 7);
+            });
           }
         }
 
