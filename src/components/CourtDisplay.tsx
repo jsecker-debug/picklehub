@@ -44,7 +44,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-6 sm:space-y-12">
       <div id="court-rotations">
         {localRotations.map((rotation, rotationIdx) => (
           <RotationCard
