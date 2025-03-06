@@ -77,11 +77,11 @@ const DraggablePlayer = ({
 
   const availablePlayers = getAvailablePlayers();
 
-  // Determine background color based on gender
+  // Determine background color based on team type
   const getBgColor = () => {
-    if (gender === 'F') return 'bg-pink-100 hover:bg-pink-200';
-    if (gender === 'M') return 'bg-blue-100 hover:bg-blue-200';
-    return 'bg-purple-100 hover:bg-purple-200';
+    if (teamType === 'team1') return 'bg-blue-200 hover:bg-blue-300';
+    if (teamType === 'team2') return 'bg-green-200 hover:bg-green-300';
+    return 'bg-yellow-200 hover:bg-yellow-300';
   };
 
   return (
@@ -92,11 +92,11 @@ const DraggablePlayer = ({
             <DropdownMenuTrigger asChild>
               <button 
                 type="button" 
-                className={`cursor-pointer select-none px-3 py-2 rounded-lg text-lg font-medium shadow-sm ${getBgColor()} inline-flex items-center gap-1`}
+                className={`cursor-pointer select-none px-3 py-2 rounded-lg text-xl font-medium shadow-sm ${getBgColor()} inline-flex items-center gap-1`}
               >
                 <span>{player}</span>
-                <span className="text-sm text-gray-500 ml-1">({gender})</span>
-                <Repeat className="h-4 w-4 text-gray-500 ml-1" />
+                <span className="text-sm text-gray-600 ml-1">({gender})</span>
+                <Repeat className="h-4 w-4 text-gray-600 ml-1" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
