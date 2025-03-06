@@ -22,60 +22,107 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
 
     try {
       toast.info("Generating PDF...");
-      const canvas = await html2canvas(element, {
+      
+      // Clone the element to modify it for PDF without affecting the UI
+      const clonedElement = element.cloneNode(true) as HTMLElement;
+      
+      // Hide score inputs and submit buttons in the cloned element
+      const scoreInputs = clonedElement.querySelectorAll('[class*="ScoreInput"]');
+      scoreInputs.forEach(input => {
+        (input as HTMLElement).style.display = 'none';
+      });
+      
+      // Hide any other elements we don't want to show
+      const submitButtons = clonedElement.querySelectorAll('button[type="submit"]');
+      submitButtons.forEach(button => {
+        (button as HTMLElement).style.display = 'none';
+      });
+      
+      // Create a temporary container for rendering
+      const tempContainer = document.createElement('div');
+      tempContainer.appendChild(clonedElement);
+      document.body.appendChild(tempContainer);
+      
+      // Use html2canvas on our modified clone
+      const canvas = await html2canvas(clonedElement, {
         backgroundColor: "#ffffff",
         scale: 2,
       });
       
-      // Calculate dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
+      // Remove temporary container after capture
+      document.body.removeChild(tempContainer);
+      
+      // Create PDF in landscape orientation
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // A4 landscape dimensions
+      const pageWidth = 297; // mm
+      const pageHeight = 210; // mm
+      
+      // Calculate dimensions for the image
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      const pdf = new jsPDF("p", "mm", "a4");
+      // Get the rotation cards
+      const rotationCards = Array.from(element.querySelectorAll('[class*="RotationCard"]'));
       
-      // Calculate the number of pages needed
-      const pagesNeeded = Math.ceil(imgHeight / pageHeight);
-      
-      // For each page
-      for (let page = 0; page < pagesNeeded; page++) {
-        // Only add new page if it's not the first page
-        if (page > 0) {
-          pdf.addPage();
-        }
+      if (rotationCards.length === 0) {
+        // If we couldn't identify individual rotations, just render the whole thing
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 10, imgWidth, imgHeight);
+      } else {
+        // Process rotations two per page
+        let pageIndex = 0;
         
-        // Calculate what portion of the image to use for this page
-        const sourceY = page * canvas.height / pagesNeeded;
-        const sourceHeight = canvas.height / pagesNeeded;
-        
-        // Create a new canvas for this portion
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sourceHeight;
-        
-        const context = pageCanvas.getContext('2d');
-        if (context) {
-          context.fillStyle = '#ffffff';
-          context.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-          context.drawImage(
-            canvas,
-            0,
-            sourceY,
-            canvas.width,
-            sourceHeight,
-            0,
-            0,
-            pageCanvas.width,
-            pageCanvas.height
+        for (let i = 0; i < rotationCards.length; i += 2) {
+          if (i > 0) {
+            pdf.addPage();
+          }
+          
+          // First rotation on this page
+          const card1 = rotationCards[i] as HTMLElement;
+          const card1Canvas = await html2canvas(card1, {
+            backgroundColor: "#ffffff",
+            scale: 2,
+          });
+          
+          const card1Width = imgWidth;
+          const card1Height = (card1Canvas.height * card1Width) / card1Canvas.width;
+          
+          pdf.addImage(
+            card1Canvas.toDataURL('image/png'), 
+            'PNG', 
+            10, // x position
+            10, // y position
+            card1Width, 
+            Math.min(card1Height, pageHeight/2 - 15) // Ensure it fits half the page
           );
-        }
-        
-        // Add this portion to the PDF
-        const imgData = pageCanvas.toDataURL('image/png');
-        if (page === 0) {
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, pageHeight);
-        } else {
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, pageHeight);
+          
+          // Second rotation on this page (if available)
+          if (i + 1 < rotationCards.length) {
+            const card2 = rotationCards[i + 1] as HTMLElement;
+            const card2Canvas = await html2canvas(card2, {
+              backgroundColor: "#ffffff",
+              scale: 2,
+            });
+            
+            const card2Width = imgWidth;
+            const card2Height = (card2Canvas.height * card2Width) / card2Canvas.width;
+            
+            pdf.addImage(
+              card2Canvas.toDataURL('image/png'), 
+              'PNG', 
+              10, // x position
+              pageHeight/2 + 5, // Start below the middle of the page
+              card2Width, 
+              Math.min(card2Height, pageHeight/2 - 15) // Ensure it fits half the page
+            );
+          }
+          
+          pageIndex++;
         }
       }
       
@@ -103,4 +150,3 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
 };
 
 export default DownloadPdfButton;
-
