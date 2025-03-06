@@ -3,8 +3,7 @@ import { Card } from "@/components/ui/card";
 import CourtCard from "./CourtCard";
 import RestingPlayers from "./RestingPlayers";
 import { Court, Rotation } from "@/types/scheduler";
-import { ScoreData } from "@/types/court-display";
-import { PlayerData } from "@/types/court-display";
+import { ScoreData, PlayerData } from "@/types/court-display";
 
 interface RotationCardProps {
   rotation: Rotation;

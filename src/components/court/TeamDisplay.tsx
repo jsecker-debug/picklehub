@@ -1,6 +1,7 @@
 
 import DraggablePlayer from "../DraggablePlayer";
 import { Court } from "@/types/scheduler";
+import { PlayerData } from "@/types/court-display";
 
 interface TeamDisplayProps {
   label: string;
@@ -13,9 +14,10 @@ interface TeamDisplayProps {
     teamType: 'team1' | 'team2';
     courtIndex: number;
     rotationIndex: number;
+    targetPlayer?: string;
   }) => void;
   allCourts: Court[];
-  playerGenders: { [key: string]: string };
+  playerGenders: { [key: string]: PlayerData };
   restingPlayers: string[];
 }
 
@@ -43,7 +45,7 @@ const TeamDisplay = ({
           <DraggablePlayer
             key={playerIdx}
             player={player}
-            gender={playerGenders[player] || 'M'}
+            gender={playerGenders[player]?.gender || 'M'}
             teamType={teamType}
             courtIndex={courtIndex}
             rotationIndex={rotationIndex}

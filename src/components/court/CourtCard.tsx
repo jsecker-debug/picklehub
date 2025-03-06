@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import TeamDisplay from "./TeamDisplay";
 import ScoreInput from "./ScoreInput";
 import { Court } from "@/types/scheduler";
+import { PlayerData } from "@/types/court-display";
 
 interface CourtCardProps {
   court: Court;
@@ -13,8 +14,9 @@ interface CourtCardProps {
     teamType: 'team1' | 'team2';
     courtIndex: number;
     rotationIndex: number;
+    targetPlayer?: string;
   }) => void;
-  playerGenders: { [key: string]: string };
+  playerGenders: { [key: string]: PlayerData };
   showScores: boolean;
   scores: { team1: string; team2: string };
   onScoreChange: (team: 'team1' | 'team2', value: string) => void;
