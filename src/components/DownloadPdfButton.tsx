@@ -40,16 +40,16 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       // A4 landscape dimensions
       const pageWidth = 297;
       const pageHeight = 210;
-      const margin = 15;
-      // Make rotation area taller to accommodate all content
-      const rotationHeight = pageHeight - margin * 3; // Increased height to make more room
+      const margin = 10;
+      // Rotation height for two per page
+      const rotationHeight = (pageHeight - margin * 3) / 2;
 
       // Function to render a single rotation
       const renderRotation = (card: Element, yPosition: number, rotationIndex: number) => {
         // Draw rotation header
-        pdf.setFontSize(20);
+        pdf.setFontSize(16);
         pdf.setFont("helvetica", "bold");
-        pdf.text(`Rotation ${rotationIndex + 1}`, margin, yPosition + 10);
+        pdf.text(`Rotation ${rotationIndex + 1}`, margin, yPosition + 8);
 
         // Get courts from the rotation card
         const courts = Array.from(card.querySelectorAll('[class*="p-5 border-2"]'));
@@ -63,22 +63,22 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
 
         // Draw court container area
         pdf.setDrawColor(100, 100, 100);
-        pdf.setLineWidth(0.7);
-        pdf.rect(margin, yPosition, pageWidth - (margin * 2), mainBoxHeight);
+        pdf.setLineWidth(0.5);
+        pdf.rect(margin, yPosition + 10, pageWidth - (margin * 2), mainBoxHeight);
 
         // Render each court
         courts.forEach((courtElement, courtIdx) => {
           const courtX = margin + 5 + (courtIdx * (courtWidth + 5));
-          let courtY = yPosition + 20;
+          let courtY = yPosition + 18;
 
           // Court header (find the h3 element with "Court X" text)
           const courtHeader = courtElement.querySelector('h3');
           if (courtHeader) {
-            pdf.setFontSize(18);
+            pdf.setFontSize(14);
             pdf.setFont("helvetica", "bold");
             pdf.text(courtHeader.textContent || `Court ${courtIdx + 1}`, courtX, courtY);
           }
-          courtY += 10;
+          courtY += 8;
 
           // Find team displays (they have bg-blue-100 or bg-green-100 classes)
           const teamElements = Array.from(courtElement.querySelectorAll('[class*="bg-blue-100"], [class*="bg-green-100"]'));
@@ -87,29 +87,29 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             // Team header
             const teamHeader = teamElement.querySelector('span');
             if (teamHeader) {
-              pdf.setFontSize(16);
+              pdf.setFontSize(12);
               pdf.setFont("helvetica", "bold");
               pdf.text(teamHeader.textContent || `Team ${teamIdx + 1}`, courtX, courtY);
             }
-            courtY += 8;
+            courtY += 6;
 
             // Get player buttons (they have specific background colors)
             const playerButtons = Array.from(teamElement.querySelectorAll('button'));
             
             // Players
-            pdf.setFontSize(14);
+            pdf.setFontSize(10);
             pdf.setFont("helvetica", "normal");
             playerButtons.forEach(button => {
               const playerName = button.querySelector('span')?.textContent;
               const playerGender = button.textContent?.match(/\(([^)]+)\)/)?.[1];
               
               if (playerName) {
-                pdf.text(`${playerName} (${playerGender || '?'})`, courtX + 5, courtY);
-                courtY += 7;
+                pdf.text(`${playerName} (${playerGender || '?'})`, courtX + 3, courtY);
+                courtY += 5;
               }
             });
             
-            courtY += 5; // Space between teams
+            courtY += 3; // Space between teams
           });
         });
 
@@ -120,7 +120,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           if (resterButtons.length > 0) {
             // Define resting players box dimensions - position it below the main box with some spacing
             const restersBoxX = margin;
-            const restersBoxY = yPosition + mainBoxHeight + 10; // Position below the main box
+            const restersBoxY = yPosition + mainBoxHeight + 12; // Position below the main box
             const restersBoxWidth = pageWidth - (margin * 2);
             const restersBoxHeight = rotationHeight * 0.25; // Resting box takes 25% of the total height
             
@@ -130,13 +130,13 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             
             // Draw border for resting players section
             pdf.setDrawColor(100, 100, 100);
-            pdf.setLineWidth(0.7);
+            pdf.setLineWidth(0.5);
             pdf.rect(restersBoxX, restersBoxY, restersBoxWidth, restersBoxHeight);
             
             // Draw header for resting players
-            pdf.setFontSize(16);
+            pdf.setFontSize(12);
             pdf.setFont("helvetica", "bold");
-            pdf.text("Resting Players:", restersBoxX + 5, restersBoxY + 10);
+            pdf.text("Resting Players:", restersBoxX + 5, restersBoxY + 8);
             
             // Extract names and genders
             const resterNames = resterButtons.map(button => {
@@ -147,32 +147,37 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             
             // Split resting players into chunks for better display
             const chunkedResters = [];
-            const chunk = 4; // Show more names per row
+            const chunk = 6; // Show more names per row
             
             for (let i = 0; i < resterNames.length; i += chunk) {
               chunkedResters.push(resterNames.slice(i, i + chunk));
             }
             
             pdf.setFont("helvetica", "normal");
-            pdf.setFontSize(14);
+            pdf.setFontSize(10);
             
             // Display resting players in multiple rows if needed
             chunkedResters.forEach((namesChunk, idx) => {
-              pdf.text(namesChunk.join(", "), restersBoxX + 15, restersBoxY + 10 + (idx + 1) * 9);
+              pdf.text(namesChunk.join(", "), restersBoxX + 10, restersBoxY + 8 + (idx + 1) * 6);
             });
           }
         }
       };
 
-      // Generate PDF with one rotation per page for better spacing
-      rotationCards.forEach((card, i) => {
-        if (i > 0) {
+      // Generate PDF with two rotations per page
+      for (let i = 0; i < rotationCards.length; i += 2) {
+        if (i > 0 && i % 2 === 0) {
           pdf.addPage();
         }
         
-        // Render the rotation filling most of the page
-        renderRotation(card, margin, i);
-      });
+        // Render first rotation on top half
+        renderRotation(rotationCards[i], margin, i);
+        
+        // Render second rotation on bottom half if available
+        if (i + 1 < rotationCards.length) {
+          renderRotation(rotationCards[i + 1], margin + rotationHeight + margin, i + 1);
+        }
+      }
       
       pdf.save(`${fileName}.pdf`);
       toast.success("PDF downloaded successfully!");
