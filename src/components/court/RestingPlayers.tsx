@@ -26,9 +26,9 @@ const RestingPlayers = ({
   if (resters.length === 0) return null;
 
   return (
-    <div className="mt-6 p-5 bg-yellow-50 rounded-lg border border-yellow-200 shadow-inner">
-      <h3 className="text-2xl font-semibold text-amber-700 mb-4">Resting Players:</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div className="mt-6 p-6 bg-amber-100 rounded-lg border-2 border-amber-300 shadow-md">
+      <h3 className="text-3xl font-bold text-amber-800 mb-5">Resting Players:</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {resters.map((player, idx) => (
           <DraggablePlayer
             key={idx}

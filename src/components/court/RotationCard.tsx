@@ -44,25 +44,25 @@ const RotationCard = ({
   const [completed, setCompleted] = useState(false);
   
   return (
-    <Card key={rotationIdx} className={`p-6 mb-10 bg-gradient-to-b from-white to-gray-50 border-2 border-accent/20 shadow-lg ${completed ? 'opacity-70' : ''}`}>
-      <div className="mb-8 flex items-center gap-4">
-        <div className="flex items-center justify-center w-20 h-20 text-4xl font-bold bg-primary text-white rounded-full shadow-md">
+    <Card key={rotationIdx} className={`p-8 mb-12 bg-gradient-to-b from-white to-gray-50 border-2 border-accent/30 shadow-xl ${completed ? 'opacity-70' : ''}`}>
+      <div className="mb-8 flex items-center gap-6">
+        <div className="flex items-center justify-center w-24 h-24 text-5xl font-bold bg-primary text-white rounded-full shadow-lg">
           {rotationIdx + 1}
         </div>
-        <div className="flex-1 flex items-center gap-4">
-          <h2 className={`text-3xl font-bold text-primary ${completed ? 'line-through' : ''}`}>
+        <div className="flex-1 flex items-center gap-5">
+          <h2 className={`text-4xl font-bold text-primary ${completed ? 'line-through' : ''}`}>
             {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${rotationIdx + 1}`}
           </h2>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Checkbox 
               id={`complete-rotation-${rotationIdx}`} 
               checked={completed} 
               onCheckedChange={() => setCompleted(!completed)}
-              className="h-6 w-6 border-2"
+              className="h-7 w-7 border-2"
             />
             <label 
               htmlFor={`complete-rotation-${rotationIdx}`}
-              className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-xl font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Completed
             </label>
@@ -71,9 +71,9 @@ const RotationCard = ({
       </div>
       
       <div className={`overflow-x-auto pb-6 ${completed ? 'line-through' : ''}`}>
-        <div className="flex flex-wrap gap-6">
+        <div className="flex flex-wrap gap-8">
           {rotation.courts.map((court, courtIdx) => (
-            <div key={courtIdx} className="min-w-[320px] flex-1">
+            <div key={courtIdx} className="min-w-[350px] flex-1">
               <CourtCard
                 court={court}
                 courtIndex={courtIdx}
@@ -102,7 +102,7 @@ const RotationCard = ({
             allCourts={rotation.courts}
           />
         ) : (
-          <div className="p-5 bg-green-50 rounded-lg text-xl font-medium text-green-700 border border-green-200">
+          <div className="p-6 bg-green-100 rounded-lg text-2xl font-semibold text-green-800 border-2 border-green-300">
             All players are on courts in this rotation
           </div>
         )}
