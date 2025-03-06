@@ -96,8 +96,8 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             // Get player buttons (they have specific background colors)
             const playerButtons = Array.from(teamElement.querySelectorAll('button'));
             
-            // Players
-            pdf.setFontSize(10);
+            // Players - increased font size from 10 to 12
+            pdf.setFontSize(12);
             pdf.setFont("helvetica", "normal");
             playerButtons.forEach(button => {
               const playerName = button.querySelector('span')?.textContent;
@@ -153,8 +153,9 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
               chunkedResters.push(resterNames.slice(i, i + chunk));
             }
             
+            // Increased font size for resting players from 10 to 12
             pdf.setFont("helvetica", "normal");
-            pdf.setFontSize(10);
+            pdf.setFontSize(12);
             
             // Display resting players in multiple rows if needed
             chunkedResters.forEach((namesChunk, idx) => {
