@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import html2canvas from "html2canvas";
@@ -41,45 +42,52 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const availableWidth = pageWidth - (margin * 2);
       const availableHeight = pageHeight - (margin * 2);
       
-      for (let i = 0; i < rotationCards.length; i += 2) {
+      // Process one card per page for better quality and to avoid memory issues
+      for (let i = 0; i < rotationCards.length; i++) {
         if (i > 0) {
           pdf.addPage();
         }
         
-        const card1 = rotationCards[i] as HTMLElement;
-        const clonedCard1 = card1.cloneNode(true) as HTMLElement;
+        const card = rotationCards[i] as HTMLElement;
+        const clonedCard = card.cloneNode(true) as HTMLElement;
         
-        const scoreElements1 = clonedCard1.querySelectorAll('.ScoreInput, [class*="ScoreInput"], button[type="submit"], [class*="score"], .score-input');
-        scoreElements1.forEach(el => (el as HTMLElement).style.display = 'none');
+        // Hide all score elements - more comprehensive selectors
+        const elementsToHide = clonedCard.querySelectorAll('.ScoreInput, [class*="ScoreInput"], button[type="submit"], [class*="score"], .score-input, input, button');
+        elementsToHide.forEach(el => (el as HTMLElement).style.display = 'none');
         
-        const textElements1 = clonedCard1.querySelectorAll('h2, h3, p, label, span, div');
-        textElements1.forEach(el => {
+        // Make text bigger for better readability
+        const textElements = clonedCard.querySelectorAll('h2, h3, p, label, span, div');
+        textElements.forEach(el => {
           const element = el as HTMLElement;
           element.style.fontSize = '150%';
           element.style.fontWeight = 'bold';
         });
         
-        clonedCard1.style.width = '1500px';
-        clonedCard1.style.maxWidth = '1500px';
+        // Set a fixed width that's large enough to be readable but not too large to cause memory issues
+        clonedCard.style.width = '1000px';
+        clonedCard.style.maxWidth = '1000px';
         
-        const tempContainer1 = document.createElement('div');
-        tempContainer1.appendChild(clonedCard1);
-        tempContainer1.style.position = 'absolute';
-        tempContainer1.style.left = '-9999px';
-        document.body.appendChild(tempContainer1);
+        const tempContainer = document.createElement('div');
+        tempContainer.appendChild(clonedCard);
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        document.body.appendChild(tempContainer);
         
-        const card1Canvas = await html2canvas(clonedCard1, {
+        // Reduce scale to prevent memory issues
+        const cardCanvas = await html2canvas(clonedCard, {
           backgroundColor: "#ffffff",
-          scale: 4,
+          scale: 2, // Reduced from 4 to prevent memory issues
           logging: false,
           allowTaint: true,
           useCORS: true,
+          imageTimeout: 0, // No timeout
         });
         
-        document.body.removeChild(tempContainer1);
+        document.body.removeChild(tempContainer);
         
-        const aspectRatio = card1Canvas.width / card1Canvas.height;
-        let imgHeight = (availableHeight / 2) - 4;
+        // Calculate dimensions to fill the entire page
+        const aspectRatio = cardCanvas.width / cardCanvas.height;
+        let imgHeight = availableHeight;
         let imgWidth = imgHeight * aspectRatio;
         
         if (imgWidth > availableWidth) {
@@ -87,71 +95,21 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           imgHeight = imgWidth / aspectRatio;
         }
         
+        // Center the image on the page
         const xPosition = margin + (availableWidth - imgWidth) / 2;
+        const yPosition = margin + (availableHeight - imgHeight) / 2;
+        
+        // Lower quality to reduce memory usage
+        const imgData = cardCanvas.toDataURL('image/jpeg', 0.7); // Use JPEG with 70% quality instead of PNG
         
         pdf.addImage(
-          card1Canvas.toDataURL('image/png'),
-          'PNG',
+          imgData,
+          'JPEG',
           xPosition,
-          margin,
+          yPosition,
           imgWidth,
           imgHeight
         );
-        
-        if (i + 1 < rotationCards.length) {
-          const card2 = rotationCards[i + 1] as HTMLElement;
-          const clonedCard2 = card2.cloneNode(true) as HTMLElement;
-          
-          const scoreElements2 = clonedCard2.querySelectorAll('.ScoreInput, [class*="ScoreInput"], button[type="submit"], [class*="score"], .score-input');
-          scoreElements2.forEach(el => (el as HTMLElement).style.display = 'none');
-          
-          const textElements2 = clonedCard2.querySelectorAll('h2, h3, p, label, span, div');
-          textElements2.forEach(el => {
-            const element = el as HTMLElement;
-            element.style.fontSize = '150%';
-            element.style.fontWeight = 'bold';
-          });
-          
-          clonedCard2.style.width = '1500px';
-          clonedCard2.style.maxWidth = '1500px';
-          
-          const tempContainer2 = document.createElement('div');
-          tempContainer2.appendChild(clonedCard2);
-          tempContainer2.style.position = 'absolute';
-          tempContainer2.style.left = '-9999px';
-          document.body.appendChild(tempContainer2);
-          
-          const card2Canvas = await html2canvas(clonedCard2, {
-            backgroundColor: "#ffffff",
-            scale: 4,
-            logging: false,
-            allowTaint: true,
-            useCORS: true,
-          });
-          
-          document.body.removeChild(tempContainer2);
-          
-          const aspectRatio2 = card2Canvas.width / card2Canvas.height;
-          let imgHeight2 = (availableHeight / 2) - 4;
-          let imgWidth2 = imgHeight2 * aspectRatio2;
-          
-          if (imgWidth2 > availableWidth) {
-            imgWidth2 = availableWidth;
-            imgHeight2 = imgWidth2 / aspectRatio2;
-          }
-          
-          const xPosition2 = margin + (availableWidth - imgWidth2) / 2;
-          const yPosition2 = margin + imgHeight + 8;
-          
-          pdf.addImage(
-            card2Canvas.toDataURL('image/png'),
-            'PNG',
-            xPosition2,
-            yPosition2,
-            imgWidth2,
-            imgHeight2
-          );
-        }
       }
       
       pdf.save(`${fileName}.pdf`);
