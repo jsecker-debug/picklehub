@@ -45,8 +45,8 @@ const TeamDisplay = ({
   };
 
   return (
-    <div className={`flex justify-between items-center p-4 rounded-md border ${getBgColor()} shadow-sm`}>
-      <span className="text-xl font-semibold text-gray-700">{label}:</span>
+    <div className={`flex flex-col p-4 rounded-md border ${getBgColor()} shadow-sm`}>
+      <span className="text-xl font-semibold text-gray-700 mb-3">{label}:</span>
       <div className="flex flex-wrap gap-3 justify-end">
         {players.map((player, playerIdx) => (
           <DraggablePlayer

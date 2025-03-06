@@ -92,11 +92,13 @@ const DraggablePlayer = ({
             <DropdownMenuTrigger asChild>
               <button 
                 type="button" 
-                className={`cursor-pointer select-none px-3 py-2 rounded-lg text-xl font-medium shadow-sm ${getBgColor()} inline-flex items-center gap-1`}
+                className={`cursor-pointer select-none px-4 py-3 rounded-lg text-xl font-medium shadow-sm ${getBgColor()} w-full flex flex-col items-center gap-1`}
               >
-                <span>{player}</span>
-                <span className="text-sm text-gray-600 ml-1">({gender})</span>
-                <Repeat className="h-4 w-4 text-gray-600 ml-1" />
+                <span className="text-xl">{player}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-gray-600">({gender})</span>
+                  <Repeat className="h-4 w-4 text-gray-600" />
+                </div>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
