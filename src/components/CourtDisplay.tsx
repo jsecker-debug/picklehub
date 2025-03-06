@@ -39,7 +39,7 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
       data.teamType,
       data.courtIndex,
       targetRotation,
-      data.targetPlayer // Pass the specified target player
+      data.targetPlayer
     );
 
     if (!updatedRotation) return;
@@ -50,12 +50,10 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
         toast.error("Failed to update player positions");
         return;
       }
-      // Update the rotation in our local state after successful DB update
       newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated successfully");
     } else {
-      // Update local state for non-persisted changes
       newRotations[data.rotationIndex] = updatedRotation;
       setLocalRotations(newRotations);
       toast.success("Player position updated");
@@ -133,62 +131,54 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
               </h2>
             </div>
             
-            <div className="overflow-x-auto pb-4">
-              <div className="min-w-max">
-                <div className="grid grid-cols-[auto_repeat(auto-fill,minmax(300px,1fr))] gap-4">
-                  {/* First column with rotation labels */}
-                  <div className="flex flex-col gap-4 pr-4">
-                    <div className="h-12 font-semibold text-xl flex items-end pb-2">Court</div>
-                    <div className="text-center font-semibold text-lg mb-2 py-2">Team 1</div>
-                    <div className="text-center font-semibold text-xl py-4">VS</div>
-                    <div className="text-center font-semibold text-lg mt-2 py-2">Team 2</div>
-                  </div>
-                  
-                  {/* Court columns */}
-                  {rotation.courts.map((court, courtIdx) => (
-                    <div key={courtIdx} className="flex flex-col gap-4">
-                      <div className="h-12 bg-gray-100 rounded-t-lg text-center text-xl font-semibold flex items-center justify-center">
-                        Court {courtIdx + 1}
-                      </div>
-                      <div className="bg-green-100 p-4 rounded-lg text-center min-h-[120px] flex flex-col justify-center">
-                        {court.team1.map((player, idx) => (
-                          <div key={idx} className="text-lg font-medium mb-1">{player}</div>
-                        ))}
-                      </div>
-                      <div className="text-center font-bold text-2xl">VS</div>
-                      <div className="bg-blue-100 p-4 rounded-lg text-center min-h-[120px] flex flex-col justify-center">
-                        {court.team2.map((player, idx) => (
-                          <div key={idx} className="text-lg font-medium mb-1">{player}</div>
-                        ))}
-                      </div>
-                      
-                      {sessionStatus === 'Ready' && !isKingCourt && (
-                        <div className="mt-4 flex gap-2">
-                          <input 
-                            type="number" 
-                            className="flex-1 p-2 border rounded text-lg"
-                            placeholder="Team 1"
-                            value={scores[`${rotationIdx}-${courtIdx}`]?.team1 || ''}
-                            onChange={(e) => handleScoreChange(rotationIdx, courtIdx, 'team1', e.target.value)}
-                          />
-                          <input 
-                            type="number" 
-                            className="flex-1 p-2 border rounded text-lg"
-                            placeholder="Team 2"
-                            value={scores[`${rotationIdx}-${courtIdx}`]?.team2 || ''}
-                            onChange={(e) => handleScoreChange(rotationIdx, courtIdx, 'team2', e.target.value)}
-                          />
-                          <button 
-                            className="px-4 py-2 bg-primary text-white rounded text-lg"
-                            onClick={() => handleSubmitScore(rotationIdx, courtIdx, court)}
-                          >
-                            Save
-                          </button>
-                        </div>
-                      )}
+            <div className="overflow-x-auto pb-6">
+              <div className="flex flex-wrap gap-6">
+                {rotation.courts.map((court, courtIdx) => (
+                  <div key={courtIdx} className="min-w-[300px] flex-1">
+                    <div className="bg-gray-100 rounded-t-lg text-center text-2xl font-semibold py-3">
+                      Court {courtIdx + 1}
                     </div>
-                  ))}
-                </div>
+                    
+                    <div className="bg-green-100 p-4 rounded-t-lg text-center min-h-[150px] flex flex-col justify-center">
+                      {court.team1.map((player, idx) => (
+                        <div key={idx} className="text-xl font-medium mb-2">{player}</div>
+                      ))}
+                    </div>
+                    
+                    <div className="text-center font-bold text-2xl py-2 bg-gray-100">VS</div>
+                    
+                    <div className="bg-blue-100 p-4 rounded-b-lg text-center min-h-[150px] flex flex-col justify-center">
+                      {court.team2.map((player, idx) => (
+                        <div key={idx} className="text-xl font-medium mb-2">{player}</div>
+                      ))}
+                    </div>
+                    
+                    {sessionStatus === 'Ready' && !isKingCourt && (
+                      <div className="mt-4 flex gap-2">
+                        <input 
+                          type="number" 
+                          className="flex-1 p-2 border rounded text-lg"
+                          placeholder="Team 1"
+                          value={scores[`${rotationIdx}-${courtIdx}`]?.team1 || ''}
+                          onChange={(e) => handleScoreChange(rotationIdx, courtIdx, 'team1', e.target.value)}
+                        />
+                        <input 
+                          type="number" 
+                          className="flex-1 p-2 border rounded text-lg"
+                          placeholder="Team 2"
+                          value={scores[`${rotationIdx}-${courtIdx}`]?.team2 || ''}
+                          onChange={(e) => handleScoreChange(rotationIdx, courtIdx, 'team2', e.target.value)}
+                        />
+                        <button 
+                          className="px-4 py-2 bg-primary text-white rounded text-lg"
+                          onClick={() => handleSubmitScore(rotationIdx, courtIdx, court)}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -196,12 +186,12 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
               <h3 className="text-2xl font-semibold mb-4">Sitting Out</h3>
               <div className="flex flex-wrap gap-3">
                 {rotation.resters.map((player, idx) => (
-                  <div key={idx} className="bg-yellow-100 px-4 py-2 rounded-lg text-lg">
+                  <div key={idx} className="bg-yellow-100 px-4 py-2 rounded-lg text-xl">
                     {player}
                   </div>
                 ))}
                 {rotation.resters.length === 0 && (
-                  <div className="text-gray-500 text-lg">No players sitting out in this rotation</div>
+                  <div className="text-gray-500 text-xl">No players sitting out in this rotation</div>
                 )}
               </div>
             </div>
