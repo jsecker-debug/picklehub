@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 
@@ -43,11 +42,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const pageHeight = 210; // mm
       const margin = 10; // mm
       
-      // Available space accounting for margins
-      const availableWidth = pageWidth - (margin * 2);
-      const availableHeight = pageHeight - (margin * 2);
-      
-      // Process two cards per page
+      // Generate PDF with direct text rendering (no image conversion)
       for (let i = 0; i < rotationCards.length; i += 2) {
         // Add a new page for each pair (except the first)
         if (i > 0) {
@@ -55,25 +50,11 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         }
         
         // Process first card on the page
-        await processRotationCard(rotationCards[i] as HTMLElement, pdf, {
-          pageWidth,
-          pageHeight,
-          margin,
-          availableWidth,
-          availableHeight,
-          position: 'top'
-        });
+        renderRotationCardToPdf(rotationCards[i] as HTMLElement, pdf, 0, i);
         
         // Process second card if available
         if (i + 1 < rotationCards.length) {
-          await processRotationCard(rotationCards[i + 1] as HTMLElement, pdf, {
-            pageWidth,
-            pageHeight,
-            margin,
-            availableWidth,
-            availableHeight,
-            position: 'bottom'
-          });
+          renderRotationCardToPdf(rotationCards[i + 1] as HTMLElement, pdf, 1, i + 1);
         }
       }
       
@@ -85,131 +66,96 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
     }
   };
   
-  // Helper function to process and add a rotation card to the PDF
-  const processRotationCard = async (
-    originalCard: HTMLElement, 
+  // Directly render rotation card contents to PDF (text-based approach)
+  const renderRotationCardToPdf = (
+    card: HTMLElement, 
     pdf: jsPDF,
-    layout: {
-      pageWidth: number;
-      pageHeight: number;
-      margin: number;
-      availableWidth: number;
-      availableHeight: number;
-      position: 'top' | 'bottom';
-    }
+    position: number,  // 0 = top half of page, 1 = bottom half
+    rotationNumber: number
   ) => {
-    // Create a deep clone to avoid modifying the displayed UI
-    const card = originalCard.cloneNode(true) as HTMLElement;
+    // A4 landscape dimensions (mm)
+    const pageWidth = 297;
+    const pageHeight = 210;
+    const margin = 15;
+    const cardHeight = 85; // Height of each card
+    const startY = position === 0 ? margin : pageHeight / 2 + margin / 2;
     
-    // ===== Cleaning up the card =====
+    // Set font styles
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(18);
     
-    // 1. Remove interactive elements and score inputs
-    const elementsToRemove = [
-      '.ScoreInput', 
-      '[class*="score-input"]', 
-      'input', 
-      'button[type="submit"]', 
-      'button.submit', 
-      '.submit-button',
-      'form',
-      '.score-form'
-    ];
+    // Draw card border
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(0.5);
+    pdf.rect(margin, startY, pageWidth - (margin * 2), cardHeight);
     
-    elementsToRemove.forEach(selector => {
-      card.querySelectorAll(selector).forEach(el => {
-        const element = el as HTMLElement;
-        if (element.parentNode) {
-          element.parentNode.removeChild(element);
+    // Rotation title
+    pdf.setFontSize(22);
+    pdf.text(`Rotation ${rotationNumber + 1}`, margin + 5, startY + 10);
+    
+    // Get courts from the rotation card
+    const courts = Array.from(card.querySelectorAll("[class*='CourtCard']"));
+    
+    // Calculate court positions
+    const courtWidth = (pageWidth - (margin * 2) - 10) / courts.length;
+    
+    // For each court in the rotation
+    courts.forEach((courtElement, courtIdx) => {
+      const courtX = margin + 5 + (courtIdx * courtWidth);
+      const courtY = startY + 20;
+      
+      // Court header
+      pdf.setFontSize(16);
+      pdf.text(`Court ${courtIdx + 1}`, courtX, courtY);
+      
+      // Get teams from the court
+      const teams = Array.from(courtElement.querySelectorAll("[class*='TeamDisplay']"));
+      
+      // Draw team info
+      teams.forEach((teamElement, teamIdx) => {
+        const teamY = courtY + 10 + (teamIdx * 16);
+        
+        // Team label
+        pdf.setFontSize(14);
+        pdf.text(`Team ${teamIdx + 1}:`, courtX, teamY);
+        
+        // Team players
+        const players = Array.from(teamElement.querySelectorAll("[class*='DraggablePlayer']"));
+        let playerText = "";
+        
+        players.forEach((playerElement) => {
+          const playerName = playerElement.textContent?.trim() || "";
+          if (playerName) {
+            playerText += (playerText ? ", " : "") + playerName;
+          }
+        });
+        
+        pdf.setFontSize(12);
+        pdf.text(playerText, courtX + 25, teamY);
+      });
+    });
+    
+    // Get resting players section
+    const restersSection = card.querySelector("[class*='RestingPlayers']");
+    if (restersSection) {
+      const restersY = startY + 65;
+      pdf.setFontSize(14);
+      pdf.text("Resting Players:", margin + 5, restersY);
+      
+      // Get resting players
+      const resters = Array.from(restersSection.querySelectorAll("[class*='DraggablePlayer']"));
+      let restersText = "";
+      
+      resters.forEach((resterElement) => {
+        const resterName = resterElement.textContent?.trim() || "";
+        if (resterName) {
+          restersText += (restersText ? ", " : "") + resterName;
         }
       });
-    });
-    
-    // 2. Hide elements that should not be visible
-    const elementsToHide = [
-      '.checkbox',
-      'input[type="checkbox"]',
-      '[class*="checkbox"]',
-      '[type="checkbox"]',
-      'button',
-      '[class*="ScoreInput"]',
-      '[class*="score"]'
-    ];
-    
-    elementsToHide.forEach(selector => {
-      card.querySelectorAll(selector).forEach(el => {
-        (el as HTMLElement).style.display = 'none';
-      });
-    });
-    
-    // 3. Enhance text elements for better readability
-    const textElements = card.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, label');
-    textElements.forEach(el => {
-      const element = el as HTMLElement;
-      element.style.fontSize = '180%'; // Significantly larger text
-      element.style.fontWeight = 'bold';
-      element.style.color = '#000000'; // Ensure black text for contrast
-    });
-    
-    // 4. Prepare card for rendering
-    card.style.width = '1200px';
-    card.style.maxWidth = '1200px';
-    card.style.border = '1px solid #000';
-    card.style.backgroundColor = '#FFFFFF';
-    card.style.boxShadow = 'none';
-    
-    // ===== Rendering the card =====
-    
-    // Create a temporary container for rendering
-    const tempContainer = document.createElement('div');
-    tempContainer.appendChild(card);
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    document.body.appendChild(tempContainer);
-    
-    // Render the card to canvas
-    const cardCanvas = await html2canvas(card, {
-      backgroundColor: "#FFFFFF",
-      scale: 2, // Balance between quality and performance
-      logging: false,
-      allowTaint: true,
-      useCORS: true,
-      removeContainer: true,
-    });
-    
-    document.body.removeChild(tempContainer);
-    
-    // ===== Adding to PDF =====
-    
-    // Calculate dimensions
-    const cardRatio = cardCanvas.width / cardCanvas.height;
-    
-    // Get half of available height for each card, minus spacing
-    let imgHeight = (layout.availableHeight / 2) - 5; // 5mm spacing between cards
-    let imgWidth = imgHeight * cardRatio;
-    
-    // If width exceeds available width, scale down
-    if (imgWidth > layout.availableWidth) {
-      imgWidth = layout.availableWidth;
-      imgHeight = imgWidth / cardRatio;
+      
+      pdf.setFontSize(12);
+      pdf.text(restersText, margin + 35, restersY);
     }
-    
-    // Center horizontally
-    const xPosition = layout.margin + (layout.availableWidth - imgWidth) / 2;
-    
-    // Position vertically based on top/bottom placement
-    const yPosition = layout.position === 'top' 
-      ? layout.margin 
-      : layout.margin + (layout.availableHeight / 2) + 5; // 5mm spacing from middle
-    
-    // Add image to PDF with optimized quality
-    pdf.addImage(
-      cardCanvas.toDataURL('image/jpeg', 0.9), // Use JPEG with 90% quality
-      'JPEG',
-      xPosition,
-      yPosition,
-      imgWidth,
-      imgHeight
-    );
   };
 
   return (
