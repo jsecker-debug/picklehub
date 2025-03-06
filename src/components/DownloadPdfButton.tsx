@@ -50,8 +50,13 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         pdf.setFont("helvetica", "bold");
         pdf.text(`Rotation ${rotationIndex + 1}`, margin, yPosition + 10);
 
-        // Get courts from the rotation
-        const courts = Array.from(card.querySelectorAll("[class*='CourtCard']"));
+        // Get courts from the rotation card
+        const courts = Array.from(card.querySelectorAll('[class*="p-5 border-2"]'));
+        if (courts.length === 0) {
+          console.log('No courts found in rotation', rotationIndex);
+          return;
+        }
+
         const courtWidth = (pageWidth - (margin * 2) - 20) / courts.length;
 
         // Render each court
@@ -59,52 +64,66 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           const courtX = margin + 5 + (courtIdx * (courtWidth + 5));
           let courtY = yPosition + 20;
 
-          // Court header
-          pdf.setFontSize(14);
-          pdf.setFont("helvetica", "bold");
-          pdf.text(`Court ${courtIdx + 1}`, courtX, courtY);
+          // Court header (find the h3 element with "Court X" text)
+          const courtHeader = courtElement.querySelector('h3');
+          if (courtHeader) {
+            pdf.setFontSize(14);
+            pdf.setFont("helvetica", "bold");
+            pdf.text(courtHeader.textContent || `Court ${courtIdx + 1}`, courtX, courtY);
+          }
           courtY += 10;
 
-          // Get teams
-          const teams = Array.from(courtElement.querySelectorAll("[class*='TeamDisplay']"));
+          // Find team displays (they have bg-blue-100 or bg-green-100 classes)
+          const teamElements = Array.from(courtElement.querySelectorAll('[class*="bg-blue-100"], [class*="bg-green-100"]'));
           
-          // Draw team info
-          teams.forEach((teamElement, teamIdx) => {
-            const players = Array.from(teamElement.querySelectorAll("[class*='DraggablePlayer'] span"));
-            
+          teamElements.forEach((teamElement, teamIdx) => {
             // Team header
-            pdf.setFontSize(12);
-            pdf.setFont("helvetica", "bold");
-            pdf.text(`Team ${teamIdx + 1}`, courtX, courtY);
+            const teamHeader = teamElement.querySelector('span');
+            if (teamHeader) {
+              pdf.setFontSize(12);
+              pdf.setFont("helvetica", "bold");
+              pdf.text(teamHeader.textContent || `Team ${teamIdx + 1}`, courtX, courtY);
+            }
             courtY += 7;
 
+            // Get player buttons (they have specific background colors)
+            const playerButtons = Array.from(teamElement.querySelectorAll('button'));
+            
             // Players
             pdf.setFontSize(11);
             pdf.setFont("helvetica", "normal");
-            players.forEach((player) => {
-              const playerName = player.textContent?.trim() || "";
+            playerButtons.forEach(button => {
+              const playerName = button.querySelector('span')?.textContent;
+              const playerGender = button.textContent?.match(/\(([^)]+)\)/)?.[1];
+              
               if (playerName) {
-                pdf.text(playerName, courtX + 5, courtY);
+                pdf.text(`${playerName} (${playerGender || '?'})`, courtX + 5, courtY);
                 courtY += 6;
               }
             });
+            
             courtY += 4; // Space between teams
           });
         });
 
         // Get and render resting players
-        const restersSection = card.querySelector("[class*='RestingPlayers']");
+        const restersSection = card.querySelector('[class*="bg-yellow-50"]');
         if (restersSection) {
-          const resters = Array.from(restersSection.querySelectorAll("[class*='DraggablePlayer'] span"))
-            .map(el => el.textContent?.trim())
-            .filter(Boolean);
-
-          if (resters.length > 0) {
+          const resterButtons = Array.from(restersSection.querySelectorAll('button'));
+          if (resterButtons.length > 0) {
             pdf.setFontSize(12);
             pdf.setFont("helvetica", "bold");
             const restersY = yPosition + rotationHeight - 15;
             pdf.text("Resting Players:", margin, restersY);
             
+            const resters = resterButtons
+              .map(button => {
+                const name = button.querySelector('span')?.textContent;
+                const gender = button.textContent?.match(/\(([^)]+)\)/)?.[1];
+                return name ? `${name} (${gender || '?'})` : null;
+              })
+              .filter(Boolean);
+
             pdf.setFont("helvetica", "normal");
             pdf.setFontSize(11);
             pdf.text(resters.join(", "), margin + 30, restersY);
@@ -156,4 +175,3 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
 };
 
 export default DownloadPdfButton;
-
