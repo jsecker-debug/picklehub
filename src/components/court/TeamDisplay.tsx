@@ -40,14 +40,14 @@ const TeamDisplay = ({
   // Determine background color based on team type
   const getBgColor = () => {
     return teamType === 'team1' 
-      ? 'bg-blue-200 hover:bg-blue-300' 
-      : 'bg-green-200 hover:bg-green-300';
+      ? 'bg-blue-100 hover:bg-blue-200' 
+      : 'bg-green-100 hover:bg-green-200';
   };
 
   return (
-    <div className={`flex flex-col p-5 rounded-md border-2 ${getBgColor()} shadow-md`}>
-      <span className="text-2xl font-bold text-gray-800 mb-4 text-center">{label}</span>
-      <div className="flex flex-wrap gap-4 justify-center">
+    <div className={`flex flex-col p-4 rounded-md border ${getBgColor()} shadow-sm`}>
+      <span className="text-xl font-semibold text-gray-700 mb-3">{label}:</span>
+      <div className="flex flex-wrap gap-3 justify-end">
         {players.map((player, playerIdx) => (
           <DraggablePlayer
             key={playerIdx}

@@ -79,9 +79,9 @@ const DraggablePlayer = ({
 
   // Determine background color based on team type
   const getBgColor = () => {
-    if (teamType === 'team1') return 'bg-blue-300 hover:bg-blue-400';
-    if (teamType === 'team2') return 'bg-green-300 hover:bg-green-400';
-    return 'bg-yellow-300 hover:bg-yellow-400';
+    if (teamType === 'team1') return 'bg-blue-200 hover:bg-blue-300';
+    if (teamType === 'team2') return 'bg-green-200 hover:bg-green-300';
+    return 'bg-yellow-200 hover:bg-yellow-300';
   };
 
   return (
@@ -92,12 +92,12 @@ const DraggablePlayer = ({
             <DropdownMenuTrigger asChild>
               <button 
                 type="button" 
-                className={`cursor-pointer select-none px-5 py-4 rounded-lg text-2xl font-bold shadow-md ${getBgColor()} w-full flex flex-col items-center gap-2`}
+                className={`cursor-pointer select-none px-4 py-3 rounded-lg text-xl font-medium shadow-sm ${getBgColor()} w-full flex flex-col items-center gap-1`}
               >
-                <span className="text-2xl">{player}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-base text-gray-700 font-medium">({gender})</span>
-                  <Repeat className="h-5 w-5 text-gray-700" />
+                <span className="text-xl">{player}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-gray-600">({gender})</span>
+                  <Repeat className="h-4 w-4 text-gray-600" />
                 </div>
               </button>
             </DropdownMenuTrigger>
@@ -109,7 +109,7 @@ const DraggablePlayer = ({
                 <DropdownMenuItem
                   key={p}
                   onClick={() => handleClick(p)}
-                  className="flex items-center gap-2 text-lg"
+                  className="flex items-center gap-2 text-base"
                 >
                   <span>{p}</span>
                 </DropdownMenuItem>
