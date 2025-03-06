@@ -11,14 +11,14 @@ interface SessionCardProps {
 }
 
 const SessionCard = ({ title, sessions, onSessionClick }: SessionCardProps) => (
-  <Card className="p-4 sm:p-6 mb-4 sm:mb-6">
-    <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">{title}</h2>
+  <Card className="p-3 sm:p-6 mb-3 sm:mb-6">
+    <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">{title}</h2>
     {sessions && sessions.length > 0 ? (
-      <div className="space-y-3 sm:space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         {sessions.map((session) => (
           <div 
             key={session.id} 
-            className="flex justify-between items-center p-3 sm:p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+            className="flex justify-between items-center p-2 sm:p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
             onClick={() => onSessionClick(session.id)}
           >
             <div>
