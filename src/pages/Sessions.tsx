@@ -17,16 +17,16 @@ const Sessions = () => {
   };
 
   if (error) {
-    return <div className="container mx-auto p-6">Error loading sessions</div>;
+    return <div className="container mx-auto p-4 sm:p-6">Error loading sessions</div>;
   }
 
   return (
     <div className="h-full bg-gray-50">
-      <div className="max-w-full mx-auto py-6 sm:py-20 px-3 sm:px-6">
-        <div className="mb-3 sm:mb-6 flex justify-between items-center">
+      <div className="max-w-full mx-auto py-4 sm:py-20 px-2 sm:px-6">
+        <div className="mb-2 sm:mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-primary font-anybody">Sessions</h1>
-            <p className="text-gray-600 mt-1 sm:mt-2">Manage your pickleball sessions</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-primary font-anybody">Sessions</h1>
+            <p className="text-gray-600 text-sm sm:text-base mt-1 sm:mt-2">Manage your pickleball sessions</p>
           </div>
           <AddSessionDialog 
             open={isDialogOpen}
@@ -35,7 +35,7 @@ const Sessions = () => {
         </div>
 
         {isLoading ? (
-          <div className="text-center text-gray-500">Loading sessions...</div>
+          <div className="text-center text-gray-500 text-sm">Loading sessions...</div>
         ) : sessions ? (
           <>
             <SessionCard 

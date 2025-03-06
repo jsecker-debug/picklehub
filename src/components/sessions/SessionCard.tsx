@@ -11,10 +11,10 @@ interface SessionCardProps {
 }
 
 const SessionCard = ({ title, sessions, onSessionClick }: SessionCardProps) => (
-  <Card className="p-3 sm:p-6 mb-3 sm:mb-6">
-    <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">{title}</h2>
+  <Card className="p-2 sm:p-6 mb-2 sm:mb-6">
+    <h2 className="text-base sm:text-xl font-semibold mb-2 sm:mb-4">{title}</h2>
     {sessions && sessions.length > 0 ? (
-      <div className="space-y-2 sm:space-y-4">
+      <div className="space-y-1.5 sm:space-y-4">
         {sessions.map((session) => (
           <div 
             key={session.id} 
@@ -22,11 +22,11 @@ const SessionCard = ({ title, sessions, onSessionClick }: SessionCardProps) => (
             onClick={() => onSessionClick(session.id)}
           >
             <div>
-              <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
-              <p className="text-gray-500 text-sm sm:text-base">{session.Venue}</p>
+              <p className="font-medium text-sm sm:text-base">{format(new Date(session.Date), 'PPP')}</p>
+              <p className="text-gray-500 text-xs sm:text-base">{session.Venue}</p>
             </div>
             <span className={cn(
-              "px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm",
+              "px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs",
               session.Status === 'Upcoming' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
             )}>
               {session.Status}
@@ -35,7 +35,7 @@ const SessionCard = ({ title, sessions, onSessionClick }: SessionCardProps) => (
         ))}
       </div>
     ) : (
-      <div className="text-center text-gray-500 text-sm sm:text-base">
+      <div className="text-center text-gray-500 text-xs sm:text-base">
         No {title.toLowerCase()} sessions found.
       </div>
     )}
