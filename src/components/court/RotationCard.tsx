@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -44,7 +43,10 @@ const RotationCard = ({
   const [completed, setCompleted] = useState(false);
   
   return (
-    <Card key={rotationIdx} className={`p-6 mb-10 bg-gradient-to-b from-white to-gray-50 border-2 border-accent/20 shadow-lg ${completed ? 'opacity-70' : ''}`}>
+    <Card 
+      key={rotationIdx} 
+      className={`rotation-card p-6 mb-10 bg-gradient-to-b from-white to-gray-50 border-2 border-accent/20 shadow-lg ${completed ? 'opacity-70' : ''}`}
+    >
       <div className="mb-8 flex items-center gap-4">
         <div className="flex items-center justify-center w-20 h-20 text-4xl font-bold bg-primary text-white rounded-full shadow-md">
           {rotationIdx + 1}

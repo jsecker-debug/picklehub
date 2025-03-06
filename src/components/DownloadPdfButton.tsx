@@ -23,11 +23,12 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
     try {
       toast.info("Generating PDF...");
       
-      // Get all rotation cards
-      const rotationCards = Array.from(element.querySelectorAll('[class*="RotationCard"]'));
+      // Get all rotation cards - target specific class used in RotationCard component
+      const rotationCards = Array.from(element.querySelectorAll('.rotation-card'));
       
       if (rotationCards.length === 0) {
-        toast.error("No rotation cards found");
+        toast.error("No rotation cards found. Make sure rotation cards have the 'rotation-card' class.");
+        console.error("No rotation cards found in element with ID:", contentId);
         return;
       }
       
@@ -60,7 +61,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         const clonedCard1 = card1.cloneNode(true) as HTMLElement;
         
         // Hide score inputs and submit buttons in the cloned element
-        const scoreInputs1 = clonedCard1.querySelectorAll('[class*="ScoreInput"]');
+        const scoreInputs1 = clonedCard1.querySelectorAll('.ScoreInput, [class*="ScoreInput"]');
         scoreInputs1.forEach(input => {
           (input as HTMLElement).style.display = 'none';
         });
@@ -102,7 +103,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
           const clonedCard2 = card2.cloneNode(true) as HTMLElement;
           
           // Hide score inputs and submit buttons in the cloned element
-          const scoreInputs2 = clonedCard2.querySelectorAll('[class*="ScoreInput"]');
+          const scoreInputs2 = clonedCard2.querySelectorAll('.ScoreInput, [class*="ScoreInput"]');
           scoreInputs2.forEach(input => {
             (input as HTMLElement).style.display = 'none';
           });
