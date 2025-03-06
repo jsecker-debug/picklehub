@@ -42,7 +42,7 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
       const pageHeight = 210;
       const margin = 15;
       // Make rotation area taller to accommodate all content
-      const rotationHeight = pageHeight / 2 - margin;
+      const rotationHeight = pageHeight - margin * 3; // Increased height to make more room
 
       // Function to render a single rotation
       const renderRotation = (card: Element, yPosition: number, rotationIndex: number) => {
@@ -59,6 +59,12 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         }
 
         const courtWidth = (pageWidth - (margin * 2) - 20) / courts.length;
+        const mainBoxHeight = rotationHeight * 0.7; // Main box takes 70% of the total height
+
+        // Draw court container area
+        pdf.setDrawColor(100, 100, 100);
+        pdf.setLineWidth(0.7);
+        pdf.rect(margin, yPosition, pageWidth - (margin * 2), mainBoxHeight);
 
         // Render each court
         courts.forEach((courtElement, courtIdx) => {
@@ -112,11 +118,11 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
         if (restersSection) {
           const resterButtons = Array.from(restersSection.querySelectorAll('button'));
           if (resterButtons.length > 0) {
-            // Define resting players box dimensions
+            // Define resting players box dimensions - position it below the main box with some spacing
             const restersBoxX = margin;
-            const restersBoxY = yPosition + rotationHeight - 55;
+            const restersBoxY = yPosition + mainBoxHeight + 10; // Position below the main box
             const restersBoxWidth = pageWidth - (margin * 2);
-            const restersBoxHeight = 45;
+            const restersBoxHeight = rotationHeight * 0.25; // Resting box takes 25% of the total height
             
             // Draw background for resting players section
             pdf.setFillColor(255, 252, 235); // Light yellow background
@@ -156,27 +162,17 @@ const DownloadPdfButton = ({ contentId, fileName, className, children }: Downloa
             });
           }
         }
-
-        // Draw border around the entire rotation (excluding resting players section)
-        pdf.setDrawColor(100, 100, 100);
-        pdf.setLineWidth(0.7);
-        pdf.rect(margin, yPosition, pageWidth - (margin * 2), rotationHeight - 60);
       };
 
-      // Generate PDF with two rotations per page
-      for (let i = 0; i < rotationCards.length; i += 2) {
+      // Generate PDF with one rotation per page for better spacing
+      rotationCards.forEach((card, i) => {
         if (i > 0) {
           pdf.addPage();
         }
-
-        // Render first rotation on top half
-        renderRotation(rotationCards[i], margin, i);
-
-        // Render second rotation on bottom half if available
-        if (i + 1 < rotationCards.length) {
-          renderRotation(rotationCards[i + 1], pageHeight / 2 + margin / 2, i + 1);
-        }
-      }
+        
+        // Render the rotation filling most of the page
+        renderRotation(card, margin, i);
+      });
       
       pdf.save(`${fileName}.pdf`);
       toast.success("PDF downloaded successfully!");
