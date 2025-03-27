@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
@@ -16,7 +15,7 @@ import SessionDetailDialog from "@/components/sessions/SessionDetailDialog";
 const Homepage = () => {
   const { user } = useAuth();
   const { data: sessions, isLoading: isLoadingSessions } = useSessions();
-  const { participants, isLoading: isLoadingParticipants } = useParticipants();
+  const { data: participants, isLoading: isLoadingParticipants } = useParticipants();
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
   const nextSession = sessions ? getNextSession(sessions) : null;
@@ -31,7 +30,7 @@ const Homepage = () => {
   const getTopPlayers = (participants: Participant[] | undefined): Participant[] => {
     if (!participants) return [];
     return [...participants]
-      .sort((a, b) => (b.wins || 0) - (a.wins || 0))
+      .sort((a, b) => ((b.wins || 0) - (a.wins || 0)))
       .slice(0, 5);
   };
 
