@@ -1,4 +1,3 @@
-
 export interface Court {
   team1: string[];
   team2: string[];
@@ -14,8 +13,6 @@ export interface Participant {
   id: string;
   name: string;
   level?: number;
-  wins?: number;
-  losses?: number;
 }
 
 export interface Session {
