@@ -44,6 +44,13 @@ const Homepage = () => {
            sessionDate.getFullYear() === today.getFullYear();
   }).length || 0;
 
+  // Adding console logs for debugging
+  console.log("User data:", user);
+  console.log("Sessions:", sessions);
+  console.log("Participants:", participants);
+  console.log("Next session:", nextSession);
+  console.log("Top players:", topPlayers);
+
   return (
     <div className="h-full bg-gray-50">
       <div className="max-w-5xl mx-auto py-4 sm:py-12 px-2 sm:px-6">
@@ -56,6 +63,7 @@ const Homepage = () => {
           nextSession={nextSession}
           sessionsThisMonth={sessionsThisMonth}
           averageLevel={averageLevel}
+          isLoading={isLoadingSessions || isLoadingParticipants}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
