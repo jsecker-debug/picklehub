@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/ui/sidebar-new";
 import Home from "./pages/Home";
+import Homepage from "./pages/Homepage";
 import Index from "./pages/Index";
 import Participants from "./pages/Participants";
 import Sessions from "./pages/Sessions";
@@ -102,7 +104,8 @@ const App = () => {
 
             {/* Protected routes with sidebar */}
             <Route element={<ProtectedLayout />}>
-              <Route path="/home" element={<Home />} />
+              <Route path="/home" element={<Homepage />} />
+              <Route path="/old-home" element={<Home />} />
               <Route path="/scheduler" element={<Index />} />
               <Route path="/participants" element={<Participants />} />
               <Route path="/sessions" element={<Sessions />} />

@@ -1,8 +1,9 @@
+
 import { Calendar, Users, Clock, Home } from "lucide-react";
 
 export const navigationItems = [
   {
-    title: "Home",
+    title: "Dashboard",
     icon: Home,
     path: "/home",
   },
