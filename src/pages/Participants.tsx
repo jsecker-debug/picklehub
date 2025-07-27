@@ -22,16 +22,16 @@ const Participants = () => {
   };
 
   return (
-    <div className="h-full bg-gray-50">
-      <div className="max-w-full mx-auto py-20 px-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-primary font-anybody">Participants</h1>
-          <p className="text-gray-600 mt-2">Manage your participants</p>
+    <div className="h-full">
+      <div className="max-w-full mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground font-anybody">Participants</h1>
+          <p className="text-muted-foreground mt-2">Manage your participants</p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="w-full md:flex-1">
-            <Card className="p-6">
+            <Card className="p-6 bg-card border-border">
               <form onSubmit={handleSearch} className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Input

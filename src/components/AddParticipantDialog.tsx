@@ -1,23 +1,28 @@
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { PlusIcon } from "lucide-react"
 import { supabase } from "@/lib/supabase"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
+import { useClub } from "@/contexts/ClubContext"
+import { useAuth } from "@/contexts/AuthContext"
 
 export function AddParticipantDialog() {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const queryClient = useQueryClient()
+  const { selectedClubId, selectedClub } = useClub()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    level: '',
-    gender: ''
+    email: '',
+    message: ''
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -30,50 +35,54 @@ export function AddParticipantDialog() {
     setLoading(true)
 
     try {
-      // Validate DUPR rating
-      const level = parseFloat(formData.level)
-      if (isNaN(level) || level < 2 || level > 8) {
-        throw new Error('DUPR rating must be between 2 and 8')
+      if (!selectedClubId || !selectedClub) {
+        throw new Error('No club selected')
       }
 
-      // Create participant record
-      const { error: participantError } = await supabase
-        .from('participants')
+      if (!formData.email) {
+        throw new Error('Email is required')
+      }
+
+      // For now, we'll store the invitation data in the user_data field
+      // In a real system, you'd want to have a proper invitation table or email service
+      const invitationData = {
+        email: formData.email,
+        invited_by: user?.id,
+        invited_by_name: user?.user_metadata?.full_name || user?.email,
+        club_name: selectedClub.name,
+        invitation_type: 'email_invite',
+        personal_message: formData.message
+      };
+
+      // Since the current table requires a user_id and we don't have one for email invites,
+      // we'll create the invitation record using the current user's ID as a placeholder
+      // and mark it in the user_data that it's an outgoing invitation
+      const { error: inviteError } = await supabase
+        .from('club_join_requests')
         .insert([{
-          name: `${formData.firstName} ${formData.lastName}`,
-          level,
-          gender: formData.gender,
-          total_games_played: 0,
-          wins: 0,
-          losses: 0,
-          Linked: false
+          club_id: selectedClubId,
+          user_id: user?.id, // Use current user's ID as the creator of the invitation
+          message: `Invitation created for ${formData.email}: ${formData.message || `Invited to join ${selectedClub.name}`}`,
+          user_data: invitationData,
+          status: 'pending'
         }])
 
-      if (participantError) throw participantError
+      if (inviteError) throw inviteError
 
-      toast({
-        title: "Success",
-        description: "Participant added successfully!",
-      })
+      toast.success(`Invitation record created for ${formData.email}!`)
 
       // Reset form and close dialog
       setFormData({
-        firstName: '',
-        lastName: '',
-        level: '',
-        gender: ''
+        email: '',
+        message: ''
       })
       setIsOpen(false)
 
-      // Refresh participants list
-      queryClient.invalidateQueries({ queryKey: ["participants"] })
+      // Refresh members list
+      queryClient.invalidateQueries({ queryKey: ["club-members", selectedClubId] })
     } catch (error) {
-      console.error('Error adding participant:', error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'An error occurred while adding the participant',
-        variant: "destructive"
-      })
+      console.error('Error sending invitation:', error)
+      toast.error(error instanceof Error ? error.message : 'An error occurred while sending the invitation')
     } finally {
       setLoading(false)
     }
@@ -84,71 +93,42 @@ export function AddParticipantDialog() {
       <DialogTrigger asChild>
         <Button className="w-full">
           <PlusIcon className="mr-2 h-4 w-4" />
-          Add Participant
+          Invite Member
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Participant</DialogTitle>
+          <DialogTitle>Invite New Member</DialogTitle>
           <DialogDescription>
-            Fill in the participant's details. All fields are required.
+            Create an invitation record for this club. Note: Email delivery is not yet implemented.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">First Name</label>
-              <input
-                name="firstName"
-                type="text"
-                required
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                value={formData.firstName}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Last Name</label>
-              <input
-                name="lastName"
-                type="text"
-                required
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                value={formData.lastName}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">DUPR Rating (2.00-8.00)</label>
-            <input
-              name="level"
-              type="number"
-              step="0.01"
-              min="2"
-              max="8"
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
               required
-              className="mt-1 block w-full px-3 py-2 border rounded-md"
-              value={formData.level}
+              value={formData.email}
               onChange={handleChange}
+              placeholder="member@example.com"
+              className="bg-background border-input"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Gender</label>
-            <select
-              name="gender"
-              required
-              className="mt-1 block w-full px-3 py-2 border rounded-md"
-              value={formData.gender}
+          <div className="space-y-2">
+            <Label htmlFor="message">Personal Message (Optional)</Label>
+            <Textarea
+              id="message"
+              name="message"
+              rows={3}
+              value={formData.message}
               onChange={handleChange}
-            >
-              <option value="">Select gender</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-              <option value="O">Other</option>
-            </select>
+              placeholder="Add a personal message to the invitation..."
+              className="bg-background border-input"
+            />
           </div>
 
           <Button
@@ -156,7 +136,7 @@ export function AddParticipantDialog() {
             disabled={loading}
             className="w-full"
           >
-            {loading ? 'Adding...' : 'Add Participant'}
+            {loading ? 'Sending...' : 'Send Invitation'}
           </Button>
         </form>
       </DialogContent>

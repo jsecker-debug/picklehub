@@ -107,23 +107,25 @@ const Sessions = () => {
   };
 
   const SessionCard = ({ title, sessions }: { title: string; sessions: Session[] | undefined }) => (
-    <Card className="p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">{title}</h2>
+    <Card className="p-6 mb-6 bg-card border-border">
+      <h2 className="text-xl font-semibold mb-4 text-card-foreground">{title}</h2>
       {sessions && sessions.length > 0 ? (
         <div className="space-y-4">
           {sessions.map((session) => (
             <div 
               key={session.id} 
-              className="flex justify-between items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50"
+              className="flex justify-between items-center p-4 border border-border rounded-lg cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors"
               onClick={() => setSelectedSessionId(session.id)}
             >
               <div>
                 <p className="font-medium">{format(new Date(session.Date), 'PPP')}</p>
-                <p className="text-gray-500">{session.Venue}</p>
+                <p className="text-muted-foreground">{session.Venue}</p>
               </div>
               <span className={cn(
-                "px-3 py-1 rounded-full text-sm",
-                session.Status === 'Upcoming' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                "px-3 py-1 rounded-full text-sm font-medium",
+                session.Status === 'Upcoming' 
+                  ? 'bg-chart-1/10 text-chart-1 border border-chart-1/20' 
+                  : 'bg-muted text-muted-foreground border border-border'
               )}>
                 {session.Status}
               </span>
@@ -131,7 +133,7 @@ const Sessions = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center text-gray-500">
+        <div className="text-center text-muted-foreground">
           No {title.toLowerCase()} sessions found.
         </div>
       )}
@@ -143,12 +145,12 @@ const Sessions = () => {
   }
 
   return (
-    <div className="h-full bg-gray-50">
-      <div className="max-w-full mx-auto py-20 px-6">
-        <div className="mb-6 flex justify-between items-center">
+    <div className="h-full">
+      <div className="max-w-full mx-auto">
+        <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-primary font-anybody">Sessions</h1>
-            <p className="text-gray-600 mt-2">Manage your pickleball sessions</p>
+            <h1 className="text-3xl font-bold text-foreground font-anybody">Sessions</h1>
+            <p className="text-muted-foreground mt-2">Manage your pickleball sessions</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

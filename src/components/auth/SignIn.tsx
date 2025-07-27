@@ -86,13 +86,13 @@ export function SignIn() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="mt-6 text-3xl font-bold text-foreground">Welcome back</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             Don't have an account?{' '}
-            <Link to="/auth/sign-up" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/auth/sign-up" className="font-medium text-primary hover:text-primary/80">
               Sign up for free
             </Link>
           </p>
@@ -108,7 +108,7 @@ export function SignIn() {
                 name="email"
                 type="email"
                 required
-                className="relative block w-full px-3 py-2 border rounded-md"
+                className="relative block w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -123,7 +123,7 @@ export function SignIn() {
                 name="password"
                 type="password"
                 required
-                className="relative block w-full px-3 py-2 border rounded-md"
+                className="relative block w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-transparent"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -133,7 +133,7 @@ export function SignIn() {
 
           {message && (
             <div className={`p-4 rounded-md ${
-              message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'
+              message.type === 'error' ? 'bg-destructive/10 text-destructive border border-destructive/20' : 'bg-chart-1/10 text-chart-1 border border-chart-1/20'
             }`}>
               {message.text}
             </div>
@@ -143,7 +143,7 @@ export function SignIn() {
             <button
               type="button"
               onClick={handleResetPassword}
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-primary hover:text-primary/80"
             >
               Forgot your password?
             </button>
@@ -152,7 +152,7 @@ export function SignIn() {
           <button
             type="submit"
             disabled={loading}
-            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md group hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-primary-foreground bg-primary border border-transparent rounded-md group hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>

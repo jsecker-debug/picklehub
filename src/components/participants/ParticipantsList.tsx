@@ -103,26 +103,28 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
   }
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-card border-border">
       {isLoading ? (
-        <p className="text-center">Loading participants...</p>
+        <p className="text-center text-muted-foreground">Loading participants...</p>
       ) : (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredParticipants?.map((participant) => (
               <div
                 key={participant.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-white rounded-lg border gap-2"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-accent/5 rounded-lg border border-border gap-2 hover:bg-accent/10 transition-colors"
               >
-                <span className="truncate w-full sm:w-auto flex items-center gap-2">
+                <span className="truncate w-full sm:w-auto flex items-center gap-2 text-card-foreground">
                   {participant.Linked && (
-                    <span className="w-2 h-2 rounded-full bg-red-500" title="Linked Account" />
+                    <span className="w-2 h-2 rounded-full bg-chart-1" title="Linked Account" />
                   )}
-                  {participant.name} {participant.gender ? `(${participant.gender.charAt(0)})` : ''}
+                  <span className="font-medium">
+                    {participant.name} {participant.gender ? `(${participant.gender.charAt(0)})` : ''}
+                  </span>
                 </span>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <span className="text-sm text-gray-500">Level</span>
+                    <span className="text-sm text-muted-foreground">Level</span>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -133,10 +135,10 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
                             step="0.1"
                             min="0"
                             max="10"
-                            className="w-20 bg-gray-100 cursor-not-allowed"
+                            className="w-20 bg-muted cursor-not-allowed text-muted-foreground border-border"
                           />
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent className="bg-popover border-border text-popover-foreground">
                           <p>Levels will change after scores are submitted</p>
                         </TooltipContent>
                       </Tooltip>
@@ -146,7 +148,7 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
                     variant="ghost"
                     size="icon"
                     onClick={() => deleteParticipant.mutate(participant.id)}
-                    className="text-gray-500 hover:text-red-600 hover:bg-red-50"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -155,7 +157,7 @@ export const ParticipantsList = ({ searchQuery = "" }: { searchQuery?: string })
             ))}
           </div>
           {filteredParticipants?.length === 0 && (
-            <p className="text-center text-gray-500">
+            <p className="text-center text-muted-foreground">
               No participants found
             </p>
           )}

@@ -1,9 +1,206 @@
 ---
-description:
-globs:
+description: 
+globs: 
 ---
+# Pickleball Squad Scheduler Style Guide
 
-# Your rule content
+## 1. Project Structure
+```markdown
+src/
+├── components/           # React components
+│   ├── ui/              # shadcn/ui components
+│   ├── auth/            # Authentication components
+│   ├── profile/         # Profile components
+│   ├── participants/    # Participant management
+│   ├── scheduler/       # Scheduling components
+│   └── game-manager/    # Game management
+├── contexts/            # React contexts
+├── hooks/               # Custom hooks
+├── integrations/        # Third-party integrations
+├── lib/                 # Core utilities
+├── pages/              # Route pages
+├── services/           # Business logic
+├── types/              # TypeScript definitions
+└── utils/              # Helper functions
+```
 
-- You can @ files here
-- You can use markdown but dont have to
+## 2. Component Architecture
+
+### Component Organization
+1. **Auth Components** (`src/components/auth/`)
+   - Handle authentication flows
+   - Maintain consistent form patterns
+   - Use Supabase auth hooks
+
+2. **Profile Components** (`src/components/profile/`)
+   - User profile management
+   - Avatar handling
+   - Settings management
+
+3. **Participant Components** (`src/components/participants/`)
+   - Participant list views
+   - Add/Edit forms
+   - Status indicators (e.g., linked status)
+
+4. **Scheduler Components** (`src/components/scheduler/`)
+   - Game scheduling
+   - Court management
+   - Time slot handling
+
+5. **Game Manager Components** (`src/components/game-manager/`)
+   - Game state management
+   - Score tracking
+   - Player rotation
+
+## 3. State Management
+
+### Context Usage
+```markdown
+contexts/
+├── AuthContext.tsx      # Authentication state
+└── [FeatureContext].tsx # Feature-specific state
+```
+
+### Data Fetching
+1. Use TanStack Query for:
+   - Participant data
+   - Game schedules
+   - User profiles
+   - Session management
+
+## 4. Styling Patterns
+
+### CSS Organization
+```markdown
+1. Global Styles (src/index.css)
+   - CSS variables
+   - Base styles
+   - Utility classes
+
+2. Component Styles
+   - Tailwind classes
+   - shadcn/ui patterns
+   - Custom variants
+```
+
+### Design System
+1. **Colors**
+   - Use existing color variables
+   - Maintain consistent hover states
+   - Follow gradient button patterns
+
+2. **Typography**
+   - Use `font-anybody` for headings
+   - Consistent text sizes
+   - Proper line heights
+
+## 5. Hook Patterns
+
+### Custom Hooks
+```markdown
+hooks/
+├── useParticipants.ts   # Participant management
+├── useSchedule.ts       # Schedule management
+├── useGameState.ts      # Game state
+└── useMobile.ts         # Responsive design
+```
+
+## 6. Service Layer
+
+### API Integration
+```markdown
+services/
+├── playerSwapService.ts  # Player management
+├── rotationService.ts    # Game rotation
+└── databaseService.ts    # Supabase operations
+```
+
+## 7. Type Definitions
+
+### Type Organization
+```markdown
+types/
+├── scheduler.ts         # Scheduler types
+├── court-display.ts     # Court display types
+└── auth.ts             # Authentication types
+```
+
+## 8. Coding Standards
+
+### Component Rules
+1. Use functional components
+2. Implement proper TypeScript types
+3. Follow existing naming conventions
+4. Maintain consistent file structure
+
+### State Management
+1. Use React Query for data fetching
+2. Implement proper loading states
+3. Handle errors consistently
+4. Follow optimistic update patterns
+
+## 9. Form Handling
+
+### Form Components
+1. Use shadcn/ui components
+2. Implement consistent validation
+3. Show proper loading states
+4. Maintain error handling patterns
+
+## 10. Authentication
+
+### Auth Flow
+1. Follow existing Supabase patterns
+2. Maintain session handling
+3. Implement proper redirects
+4. Handle profile setup
+
+## 11. Performance
+
+### Optimization
+1. Implement proper query caching
+2. Use proper dependency arrays
+3. Follow existing lazy loading patterns
+4. Maintain bundle size
+
+## 12. Error Handling
+
+### Error Patterns
+1. Use toast notifications
+2. Implement proper error boundaries
+3. Follow existing error message formats
+4. Handle network errors
+
+## 13. Accessibility
+
+### A11y Standards
+1. Maintain ARIA attributes
+2. Follow existing keyboard navigation
+3. Use proper color contrast
+4. Implement proper focus states
+
+## 14. Testing
+
+### Test Organization
+```markdown
+- Component tests
+- Hook tests
+- Integration tests
+- Service tests
+```
+
+## 15. Documentation
+
+### Code Documentation
+1. Document complex functions
+2. Maintain type definitions
+3. Include usage examples
+4. Document props
+
+### Component Documentation
+1. Purpose and usage
+2. Props interface
+3. Example implementations
+4. Edge cases
+
+This style guide is specifically tailored to your project's structure and patterns, ensuring consistency with your existing implementation while providing clear guidelines for future development.

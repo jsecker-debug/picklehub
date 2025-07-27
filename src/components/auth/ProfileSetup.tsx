@@ -61,28 +61,23 @@ export function ProfileSetup() {
 
       if (updateError) throw updateError
 
-      // Then create participant record
-      const { error: participantError } = await supabase
-        .from('participants')
+      // Then create user profile record
+      const { error: profileError } = await supabase
+        .from('user_profiles')
         .upsert([{
           id: user.id,
-          name: `${formData.firstName} ${formData.lastName}`,
-          level,
-          gender: formData.gender,
-          total_games_played: 0,
-          wins: 0,
-          losses: 0,
-          rating_confidence: 1.0,
-          rating_volatility: 1.0,
-          created_at: new Date().toISOString(),
-          Linked: true
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone,
+          skill_level: level,
+          gender: formData.gender
         }], {
           onConflict: 'id'
         })
 
-      if (participantError) {
-        console.error('Participant creation error:', participantError)
-        throw participantError
+      if (profileError) {
+        console.error('Profile creation error:', profileError)
+        throw profileError
       }
 
       toast({
@@ -105,7 +100,7 @@ export function ProfileSetup() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-2xl space-y-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-gray-900">Complete Your Profile</h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -114,9 +109,9 @@ export function ProfileSetup() {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+          <div className="bg-white p-8 rounded-lg shadow-sm border space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+              <div className="space-y-2">
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
                   First Name
                 </label>
@@ -125,12 +120,12 @@ export function ProfileSetup() {
                   name="firstName"
                   type="text"
                   required
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 h-12"
                   value={formData.firstName}
                   onChange={handleChange}
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
                   Last Name
                 </label>
@@ -139,51 +134,52 @@ export function ProfileSetup() {
                   name="lastName"
                   type="text"
                   required
-                  className="mt-1 block w-full px-3 py-2 border rounded-md"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 h-12"
                   value={formData.lastName}
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            <div>
-              <label htmlFor="level" className="block text-sm font-medium text-gray-700">
-                DUPR Rating (2.00-8.00)
-              </label>
-              <input
-                id="level"
-                name="level"
-                type="number"
-                step="0.01"
-                min="2"
-                max="8"
-                required
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                value={formData.level}
-                onChange={handleChange}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+              <div className="space-y-2">
+                <label htmlFor="level" className="block text-sm font-medium text-gray-700">
+                  DUPR Rating (2.00-8.00)
+                </label>
+                <input
+                  id="level"
+                  name="level"
+                  type="number"
+                  step="0.01"
+                  min="2"
+                  max="8"
+                  required
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 h-12"
+                  value={formData.level}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  name="gender"
+                  required
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 h-12"
+                  value={formData.gender}
+                  onChange={handleChange}
+                >
+                  <option value="">Select gender</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="O">Other</option>
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
-                Gender
-              </label>
-              <select
-                id="gender"
-                name="gender"
-                required
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
-                value={formData.gender}
-                onChange={handleChange}
-              >
-                <option value="">Select gender</option>
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-                <option value="O">Other</option>
-              </select>
-            </div>
-
-            <div>
+            <div className="space-y-2">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                 Phone Number
               </label>
@@ -192,7 +188,7 @@ export function ProfileSetup() {
                 name="phone"
                 type="tel"
                 required
-                className="mt-1 block w-full px-3 py-2 border rounded-md"
+                className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 h-12"
                 value={formData.phone}
                 onChange={handleChange}
               />
@@ -210,7 +206,7 @@ export function ProfileSetup() {
           <button
             type="submit"
             disabled={loading}
-            className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="relative flex justify-center w-full px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Saving...' : 'Complete Profile'}
           </button>
