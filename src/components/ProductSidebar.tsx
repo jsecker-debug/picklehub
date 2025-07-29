@@ -12,7 +12,8 @@ import {
   LogIn,
   UserPlus,
   Menu,
-  X
+  X,
+  Home
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -64,6 +65,11 @@ const authenticatedNavigationItems = [
 ];
 
 const unauthenticatedNavigationItems = [
+  {
+    title: "Home",
+    icon: Home,
+    path: "/",
+  },
   {
     title: "Sign In",
     icon: LogIn,

@@ -15,11 +15,17 @@ import {
 } from "lucide-react";
 import { useSessions } from "@/hooks/useSessions";
 import { useParticipants } from "@/hooks/useParticipants";
+import { useClub } from "@/contexts/ClubContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 const Dashboard = () => {
   const { data: sessions } = useSessions();
-  const { data: participants } = useParticipants();
+  const { data: participants, isLoading: participantsLoading, error: participantsError } = useParticipants();
+  const { selectedClub, selectedClubId } = useClub();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Calculate some basic stats
   const upcomingSessions = sessions?.filter(session => {
@@ -47,11 +53,12 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Welcome to your pickleball club management hub
+          {selectedClub ? `Welcome to ${selectedClub.name}` : 'Welcome to your pickleball club management hub'}
         </p>
       </div>
 

@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, Mail, Send } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
 import { useClub } from "@/contexts/ClubContext"
 import { useAuth } from "@/contexts/AuthContext"
+import { generateInviteToken, sendInviteEmail, getInviteUrl } from "@/lib/email"
 
 export function AddParticipantDialog() {
   const [isOpen, setIsOpen] = useState(false)
@@ -43,33 +44,59 @@ export function AddParticipantDialog() {
         throw new Error('Email is required')
       }
 
-      // For now, we'll store the invitation data in the user_data field
-      // In a real system, you'd want to have a proper invitation table or email service
-      const invitationData = {
-        email: formData.email,
-        invited_by: user?.id,
-        invited_by_name: user?.user_metadata?.full_name || user?.email,
-        club_name: selectedClub.name,
-        invitation_type: 'email_invite',
-        personal_message: formData.message
-      };
+      if (!user) {
+        throw new Error('You must be logged in to send invitations')
+      }
 
-      // Since the current table requires a user_id and we don't have one for email invites,
-      // we'll create the invitation record using the current user's ID as a placeholder
-      // and mark it in the user_data that it's an outgoing invitation
+      // Generate unique invite token
+      const token = generateInviteToken()
+      const inviteUrl = getInviteUrl(token)
+
+      // Create invitation record in database
       const { error: inviteError } = await supabase
-        .from('club_join_requests')
+        .from('club_invitations')
         .insert([{
           club_id: selectedClubId,
-          user_id: user?.id, // Use current user's ID as the creator of the invitation
-          message: `Invitation created for ${formData.email}: ${formData.message || `Invited to join ${selectedClub.name}`}`,
-          user_data: invitationData,
+          invited_by: user.id,
+          email: formData.email,
+          token: token,
+          personal_message: formData.message || null,
           status: 'pending'
         }])
 
-      if (inviteError) throw inviteError
+      if (inviteError) {
+        console.error('Database error:', inviteError)
+        throw new Error('Failed to create invitation record')
+      }
 
-      toast.success(`Invitation record created for ${formData.email}!`)
+      // Send email invitation
+      const inviterName = user.user_metadata?.full_name || user.email || 'A club admin'
+      
+      const emailResult = await sendInviteEmail({
+        recipientEmail: formData.email,
+        clubName: selectedClub.name,
+        inviterName: inviterName,
+        inviteUrl: inviteUrl,
+        personalMessage: formData.message || undefined
+      })
+
+      if (!emailResult.success) {
+        // If email fails, we should clean up the database record
+        // Note: This might fail due to RLS policies, but we'll ignore that error
+        try {
+          await supabase
+            .from('club_invitations')
+            .delete()
+            .eq('token', token)
+        } catch (cleanupError) {
+          console.log('Could not cleanup invitation record:', cleanupError)
+          // Ignore cleanup errors - the record will expire naturally
+        }
+        
+        throw new Error(`Failed to send email: ${emailResult.error}`)
+      }
+
+      toast.success(`Invitation sent successfully to ${formData.email}!`)
 
       // Reset form and close dialog
       setFormData({
@@ -78,8 +105,9 @@ export function AddParticipantDialog() {
       })
       setIsOpen(false)
 
-      // Refresh members list
+      // Refresh any related queries
       queryClient.invalidateQueries({ queryKey: ["club-members", selectedClubId] })
+      queryClient.invalidateQueries({ queryKey: ["club-invitations", selectedClubId] })
     } catch (error) {
       console.error('Error sending invitation:', error)
       toast.error(error instanceof Error ? error.message : 'An error occurred while sending the invitation')
@@ -92,7 +120,7 @@ export function AddParticipantDialog() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="w-full">
-          <PlusIcon className="mr-2 h-4 w-4" />
+          <Mail className="mr-2 h-4 w-4" />
           Invite Member
         </Button>
       </DialogTrigger>
@@ -100,7 +128,7 @@ export function AddParticipantDialog() {
         <DialogHeader>
           <DialogTitle>Invite New Member</DialogTitle>
           <DialogDescription>
-            Create an invitation record for this club. Note: Email delivery is not yet implemented.
+            Send an email invitation to join {selectedClub?.name}. They'll receive a link to automatically join the club.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
@@ -136,7 +164,17 @@ export function AddParticipantDialog() {
             disabled={loading}
             className="w-full"
           >
-            {loading ? 'Sending...' : 'Send Invitation'}
+            {loading ? (
+              <>
+                <Send className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Send Invitation
+              </>
+            )}
           </Button>
         </form>
       </DialogContent>

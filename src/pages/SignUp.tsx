@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useClub } from "@/contexts/ClubContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { 
   UserPlus, 
   Mail, 
@@ -16,7 +18,8 @@ import {
   Target,
   Building,
   Check,
-  X
+  X,
+  Gift
 } from "lucide-react";
 
 interface SignUpFormData {
@@ -31,6 +34,7 @@ interface SignUpFormData {
 }
 
 const SignUp = () => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<SignUpFormData>({
     email: "",
     password: "",
@@ -44,7 +48,76 @@ const SignUp = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [inviteData, setInviteData] = useState<{ token: string; clubName: string; inviterName: string; clubId: string } | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { refreshClubs, setSelectedClubId } = useClub();
+
+  // Check for invite token on component mount
+  useEffect(() => {
+    const inviteToken = searchParams.get('invite');
+    if (inviteToken) {
+      checkInviteToken(inviteToken);
+    }
+  }, [searchParams]);
+
+  const checkInviteToken = async (token: string) => {
+    try {
+      // First get the basic invitation data
+      const { data: invitation, error } = await supabase
+        .from('club_invitations')
+        .select('*')
+        .eq('token', token)
+        .eq('status', 'pending')
+        .single();
+
+      if (error || !invitation) {
+        toast.error('Invalid or expired invitation link');
+        return;
+      }
+
+      // Check if invitation is expired
+      if (new Date(invitation.expires_at) < new Date()) {
+        toast.error('This invitation has expired');
+        return;
+      }
+
+      // Get club information separately
+      const { data: club } = await supabase
+        .from('clubs')
+        .select('name')
+        .eq('id', invitation.club_id)
+        .single();
+
+      // Get inviter information from user_profiles table (assuming you have it)
+      const { data: inviter } = await supabase
+        .from('user_profiles')
+        .select('first_name, last_name')
+        .eq('id', invitation.invited_by)
+        .single();
+
+      // Pre-fill email if it matches the invitation
+      setFormData(prev => ({
+        ...prev,
+        email: invitation.email
+      }));
+
+      const inviterName = inviter ? `${inviter.first_name} ${inviter.last_name}` : 'Someone';
+      const clubName = club?.name || 'Unknown Club';
+
+      setInviteData({
+        token: token,
+        clubName: clubName,
+        inviterName: inviterName,
+        clubId: invitation.club_id
+      });
+
+      toast.success(`You've been invited to join ${clubName}!`);
+    } catch (error) {
+      console.error('Error checking invite token:', error);
+      toast.error('Error processing invitation');
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -84,6 +157,61 @@ const SignUp = () => {
     }
   };
 
+  const processInvite = async (userId: string) => {
+    if (!inviteData) return;
+
+    try {
+      // Get the invitation details
+      const { data: invitation, error: fetchError } = await supabase
+        .from('club_invitations')
+        .select('*')
+        .eq('token', inviteData.token)
+        .eq('status', 'pending')
+        .single();
+
+      if (fetchError || !invitation) {
+        console.error('Error fetching invitation:', fetchError);
+        return;
+      }
+
+      // Mark invitation as accepted
+      const { error: updateError } = await supabase
+        .from('club_invitations')
+        .update({
+          status: 'accepted',
+          accepted_at: new Date().toISOString(),
+          accepted_by: userId
+        })
+        .eq('token', inviteData.token);
+
+      if (updateError) {
+        console.error('Error updating invitation:', updateError);
+      }
+
+      // Add user to club
+      const { error: membershipError } = await supabase
+        .from('club_memberships')
+        .insert({
+          club_id: invitation.club_id,
+          user_id: userId,
+          role: 'member',
+          status: 'active'
+        });
+
+      if (membershipError) {
+        console.error('Error creating membership:', membershipError);
+      } else {
+        toast.success(`Successfully joined ${inviteData.clubName}!`);
+        
+        // Invalidate React Query cache to refresh member data
+        queryClient.invalidateQueries({ queryKey: ["participants", invitation.club_id] });
+        queryClient.invalidateQueries({ queryKey: ["club-members", invitation.club_id] });
+      }
+    } catch (error) {
+      console.error('Error processing invite:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -101,25 +229,65 @@ const SignUp = () => {
             full_name: `${formData.firstName} ${formData.lastName}`,
             phone: formData.phone,
             level: formData.level,
-            gender: formData.gender
+            gender: formData.gender,
+            invite_token: inviteData?.token // Store invite token in user metadata
           }
         }
       });
       
       if (authError) throw authError;
+
+      // Create user profile record
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: authData.user.id,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+            skill_level: parseFloat(formData.level),
+            gender: formData.gender,
+            total_games_played: 0,
+            wins: 0,
+            losses: 0,
+            is_active: true
+          });
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          throw new Error('Failed to create user profile');
+        }
+      }
+
+      // If there's an invite and the user was created successfully, process it
+      if (inviteData && authData.user) {
+        await processInvite(authData.user.id);
+      }
       
       // Success! Account created, redirect to sign-in page
-      toast.success("Account created! Please check your email to confirm your account.");
+      const successMessage = inviteData 
+        ? `Account created! Please check your email to confirm your account. You'll be automatically added to ${inviteData.clubName} once confirmed.`
+        : "Account created! Please check your email to confirm your account.";
       
-      // Redirect to sign-in page with signup flag
-      navigate('/signin?signup=true');
+      toast.success(successMessage);
+      
+      // Redirect to sign-in page with signup flag and invite info
+      const redirectUrl = inviteData 
+        ? `/signin?signup=true&invite=${inviteData.token}`
+        : '/signin?signup=true';
+      navigate(redirectUrl);
       
     } catch (error: unknown) {
       console.error('Sign up error:', error);
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       if (errorMessage.includes('User already registered')) {
         toast.error("An account with this email already exists. Please sign in instead.");
-        navigate('/signin');
+        const redirectUrl = inviteData 
+          ? `/signin?invite=${inviteData.token}`
+          : '/signin';
+        navigate(redirectUrl);
       } else {
         toast.error(errorMessage || "Failed to create account");
       }
@@ -309,14 +477,24 @@ const SignUp = () => {
 
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Sign Up</h1>
-        <p className="text-muted-foreground mt-2">
-          Create your pickleball account and join a club
-        </p>
-      </div>
+    <div className="space-y-8 p-6">
+      {/* Invitation Banner */}
+      {inviteData && (
+        <Card className="max-w-md mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <Gift className="h-6 w-6 text-blue-600" />
+              <div>
+                <h3 className="font-semibold text-blue-900">You're Invited!</h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  <strong>{inviteData.inviterName}</strong> invited you to join{" "}
+                  <strong>{inviteData.clubName}</strong>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Progress Indicator */}
       <div className="flex items-center justify-center space-x-4">
@@ -372,24 +550,45 @@ const SignUp = () => {
       {/* Info Card */}
       <Card className="max-w-md mx-auto bg-card border-border">
         <CardContent className="p-6">
-          <h3 className="font-semibold text-card-foreground mb-2">What happens after signup?</h3>
+          <h3 className="font-semibold text-card-foreground mb-2">
+            {inviteData ? `Joining ${inviteData.clubName}` : 'What happens after signup?'}
+          </h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
               <Check className="h-4 w-4 text-green-500" />
               Your account will be created instantly
             </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" />
-              You can create your own pickleball club
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" />
-              Or join existing clubs via admin invitations
-            </li>
-            <li className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-green-500" />
-              Start managing sessions and building your community
-            </li>
+            {inviteData ? (
+              <>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  You'll be automatically added to {inviteData.clubName}
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Start registering for sessions immediately
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Connect with other members in the club
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  You can create your own pickleball club
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Or join existing clubs via admin invitations
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-green-500" />
+                  Start managing sessions and building your community
+                </li>
+              </>
+            )}
           </ul>
         </CardContent>
       </Card>

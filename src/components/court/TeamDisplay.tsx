@@ -36,8 +36,8 @@ const TeamDisplay = ({
   }, []);
 
   return (
-    <div className="flex justify-between items-center p-2 rounded border border-transparent hover:border-gray-200">
-      <span className="text-sm text-gray-600">{label}:</span>
+    <div className="flex justify-between items-center p-3 rounded-lg border-2 border-muted/20 bg-accent/5 hover:bg-accent/10 transition-colors">
+      <span className="text-sm font-semibold text-card-foreground bg-accent/20 px-2 py-1 rounded">{label}:</span>
       <span className="font-medium space-x-2">
         {players.map((player, playerIdx) => (
           <DraggablePlayer

@@ -14,34 +14,50 @@ export const useParticipants = () => {
         return [];
       }
       
-      // Query user_profiles joined with club_memberships to get participants
-      const { data, error } = await supabase
+      // First get club memberships
+      const { data: memberships, error: membershipError } = await supabase
         .from("club_memberships")
-        .select(`
-          user_profiles!inner(
-            id,
-            first_name,
-            last_name,
-            phone,
-            skill_level,
-            gender,
-            total_games_played,
-            wins,
-            losses,
-            avatar_url,
-            preferences,
-            created_at,
-            updated_at
-          )
-        `)
+        .select("user_id")
         .eq("club_id", selectedClubId)
         .eq("status", "active");
         
-      if (error) throw error;
+      if (membershipError) {
+        throw membershipError;
+      }
+      
+      if (!memberships || memberships.length === 0) {
+        return [];
+      }
+      
+      // Get user IDs
+      const userIds = memberships.map(m => m.user_id);
+      
+      // Then get user profiles for those users
+      const { data: profiles, error: profileError } = await supabase
+        .from("user_profiles")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          phone,
+          skill_level,
+          gender,
+          total_games_played,
+          wins,
+          losses,
+          avatar_url,
+          preferences,
+          created_at,
+          updated_at
+        `)
+        .in("id", userIds);
+        
+      if (profileError) {
+        throw profileError;
+      }
       
       // Transform the data to match the Participant type
-      const participants = (data || []).map((membership: any) => {
-        const profile = membership.user_profiles;
+      const participants = (profiles || []).map((profile: any) => {
         const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
         
         return {

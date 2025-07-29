@@ -54,10 +54,15 @@ export const useClubMembers = () => {
         throw error;
       }
       
+      console.log("DEBUG: Club memberships data:", data);
+      
       // Now get the actual user profiles for these members
       const userIds = (data || []).map(member => member.user_id);
       
+      console.log("DEBUG: User IDs to fetch profiles for:", userIds);
+      
       if (userIds.length === 0) {
+        console.log("DEBUG: No user IDs found, returning empty array");
         return [];
       }
       
@@ -66,9 +71,13 @@ export const useClubMembers = () => {
         .select('id, first_name, last_name, phone, skill_level, gender, total_games_played, wins, losses, avatar_url')
         .in('id', userIds);
         
+      console.log("DEBUG: User profiles data:", profiles);
+      console.log("DEBUG: User profiles error:", profileError);
+        
       if (profileError) {
         console.error('Error fetching user profiles:', profileError);
         // Fall back to basic membership data
+        console.log("DEBUG: Falling back to basic membership data");
         return (data || []).map(member => ({
           id: member.id,
           user_id: member.user_id,
@@ -111,6 +120,8 @@ export const useClubMembers = () => {
           level: profile?.skill_level || 0,
         };
       }) as ClubMember[];
+      
+      console.log("DEBUG: Final members with profiles:", membersWithProfiles);
       
       return membersWithProfiles;
     },

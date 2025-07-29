@@ -37,8 +37,8 @@ const CourtCard = ({
   restingPlayers,
 }: CourtCardProps) => {
   return (
-    <Card className="p-4 border-2 border-accent/20 bg-white">
-      <h3 className="text-lg font-medium mb-3 text-primary">
+    <Card className="p-4 border-2 border-primary/20 bg-card shadow-md">
+      <h3 className="text-lg font-semibold mb-3 text-primary bg-primary/10 px-3 py-1 rounded-md text-center">
         Court {courtIndex + 1}
       </h3>
       <div className="space-y-2">

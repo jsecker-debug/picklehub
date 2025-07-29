@@ -121,14 +121,19 @@ const CourtDisplay = ({ rotations, isKingCourt, sessionId, sessionStatus }: Cour
 
   return (
     <div className="space-y-8">
-      <div id="court-rotations" className="bg-white">
+      <div id="court-rotations">
         {localRotations.map((rotation, idx) => (
-          <Card key={idx} className="p-6 mb-6 bg-white">
-            <h2 className="text-xl font-semibold mb-4 text-primary">
-              {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
-            </h2>
+          <Card key={idx} className="p-6 mb-8 bg-card border-2 border-border shadow-lg">
+            <div className="mb-6 pb-3 border-b-2 border-primary/20">
+              <h2 className="text-2xl font-bold text-primary flex items-center gap-3">
+                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                  {idx + 1}
+                </div>
+                {isKingCourt ? "King of the Court Initial Rotation" : `Rotation ${idx + 1}`}
+              </h2>
+            </div>
             
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
               {rotation.courts.map((court, courtIdx) => (
                 <CourtCard
                   key={courtIdx}

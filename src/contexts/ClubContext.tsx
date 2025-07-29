@@ -33,7 +33,7 @@ const ClubContext = createContext<ClubContextType>({
 })
 
 export function ClubProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [selectedClub, setSelectedClub] = useState<Club | null>(null)
   const [userClubs, setUserClubs] = useState<Club[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,41 +55,56 @@ export function ClubProvider({ children }: { children: ReactNode }) {
     
     try {
       setLoading(true)
-      const { data, error } = await supabase
+      
+      // Get user's club memberships first
+      const { data: memberships, error: membershipError } = await supabase
         .from('club_memberships')
-        .select(`
-          club_id,
-          role,
-          status,
-          clubs!inner (
-            id,
-            name,
-            description,
-            location,
-            status
-          )
-        `)
+        .select('club_id, role, status')
         .eq('user_id', user.id)
+        .eq('status', 'active')
+
+      if (membershipError) {
+        console.error('Error fetching memberships:', membershipError)
+        return
+      }
+
+      if (!memberships || memberships.length === 0) {
+        setUserClubs([])
+        setSelectedClub(null)
+        return
+      }
+
+      // Get club details for each membership
+      const clubIds = memberships.map(m => m.club_id)
+      const { data: clubsData, error } = await supabase
+        .from('clubs')
+        .select('id, name, description, location, status')
+        .in('id', clubIds)
         .eq('status', 'active')
       
       if (error) {
-        console.error('Error fetching user clubs:', error)
+        console.error('Error fetching clubs:', error)
         return
       }
       
-      const clubs = data?.map(membership => ({
-        id: membership.clubs.id,
-        name: membership.clubs.name,
-        description: membership.clubs.description,
-        location: membership.clubs.location,
-        role: membership.role,
-        member_count: 0,
-        status: membership.clubs.status
-      })) || []
+      // Combine membership data with club data
+      const clubs = memberships.map(membership => {
+        const clubData = clubsData?.find(club => club.id === membership.club_id)
+        return {
+          id: membership.club_id,
+          name: clubData?.name || 'Unknown Club',
+          description: clubData?.description || '',
+          location: clubData?.location || '',
+          role: membership.role,
+          member_count: 0,
+          status: clubData?.status || 'unknown'
+        }
+      }).filter(club => club.status === 'active')
+      .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically
       
       setUserClubs(clubs)
       
-      // Set first club as selected if none selected and clubs exist
+      // Set first club (alphabetically) as selected if none selected and clubs exist
       if (clubs.length > 0 && !selectedClub) {
         setSelectedClub(clubs[0])
       }
@@ -106,8 +121,21 @@ export function ClubProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    // Don't fetch clubs if auth is still loading
+    if (authLoading) {
+      return;
+    }
+    
+    // Clear state immediately when user changes to null (logout)
+    if (!user) {
+      setUserClubs([]);
+      setSelectedClub(null);
+      setLoading(false);
+      return;
+    }
+    
     fetchUserClubs()
-  }, [user])
+  }, [user, authLoading])
 
   const refreshClubs = async () => {
     await fetchUserClubs()

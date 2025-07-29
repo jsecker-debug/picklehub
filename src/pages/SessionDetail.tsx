@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,27 +14,34 @@ import {
   CheckCircle,
   XCircle,
   UserPlus,
-  UserMinus
+  UserMinus,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useSessions } from "@/hooks/useSessions";
-import { useSessionSchedule } from "@/hooks/useSessionSchedule";
+import { useSessionSchedule, useDeleteSessionSchedule } from "@/hooks/useSessionSchedule";
 import { useSessionRegistrations, useUserSessionRegistration, useRegisterForSession, useUnregisterFromSession } from "@/hooks/useSessionRegistration";
 import { useAuth } from "@/contexts/AuthContext";
 import CourtDisplay from "@/components/CourtDisplay";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
+import SessionScheduleDialog from "@/components/session/SessionScheduleDialog";
+import TemporaryParticipantManager from "@/components/session/TemporaryParticipantManager";
+import { useTemporaryParticipants } from "@/hooks/useTemporaryParticipants";
 
 const SessionDetail = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const { data: sessions, isLoading: isLoadingSessions } = useSessions();
   const { data: scheduleData, isLoading: isLoadingSchedule } = useSessionSchedule(sessionId || null);
   const { data: registrations, isLoading: isLoadingRegistrations } = useSessionRegistrations(sessionId || '');
   const { data: userRegistration } = useUserSessionRegistration(sessionId || '');
+  const { data: temporaryParticipants = [] } = useTemporaryParticipants(sessionId || '');
   const registerMutation = useRegisterForSession();
   const unregisterMutation = useUnregisterFromSession();
+  const deleteScheduleMutation = useDeleteSessionSchedule();
 
   const session = sessions?.find(s => s.id.toString() === sessionId);
   
@@ -41,6 +49,7 @@ const SessionDetail = () => {
   // Calculate registration stats
   const registeredUsers = registrations?.filter(r => r.status === 'registered') || [];
   const waitlistUsers = registrations?.filter(r => r.status === 'waitlist') || [];
+  const totalPlayers = registeredUsers.length + temporaryParticipants.length;
   const maxParticipants = session?.max_participants || 16;
   const isSessionFull = registeredUsers.length >= maxParticipants;
   const isUserRegistered = !!userRegistration && ['registered', 'waitlist'].includes(userRegistration.status);
@@ -59,6 +68,13 @@ const SessionDetail = () => {
   const handleUnregister = () => {
     if (!sessionId || !session) return;
     unregisterMutation.mutate({ sessionId: session.id });
+  };
+
+  const handleDeleteSchedule = () => {
+    if (!sessionId) return;
+    if (confirm("Are you sure you want to delete the current schedule? This action cannot be undone.")) {
+      deleteScheduleMutation.mutate(sessionId);
+    }
   };
 
   if (isLoadingSessions) {
@@ -364,6 +380,13 @@ const SessionDetail = () => {
                   </div>
                 </div>
               )}
+
+              {/* Temporary Participants Section */}
+              {session.Status === 'Upcoming' && (
+                <div className="mt-8 pt-6 border-t border-border">
+                  <TemporaryParticipantManager sessionId={sessionId || ''} />
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8 space-y-4">
@@ -375,6 +398,13 @@ const SessionDetail = () => {
                   <UserPlus className="h-4 w-4 mr-2" />
                   Be the first to register!
                 </Button>
+              )}
+              
+              {/* Temporary Participants Section - Show even when no registered users */}
+              {session.Status === 'Upcoming' && (
+                <div className="mt-8 pt-6 border-t border-border">
+                  <TemporaryParticipantManager sessionId={sessionId || ''} />
+                </div>
               )}
             </div>
           )}
@@ -390,10 +420,29 @@ const SessionDetail = () => {
               Court Schedule
             </CardTitle>
             {scheduleData?.rotations && scheduleData.rotations.length > 0 && (
-              <DownloadPdfButton
-                rotations={scheduleData.rotations}
-                sessionId={sessionId || ''}
-              />
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleDeleteSchedule}
+                  disabled={deleteScheduleMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {deleteScheduleMutation.isPending ? 'Deleting...' : 'Delete Schedule'}
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setScheduleDialogOpen(true)}
+                  disabled={totalPlayers < 4}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Regenerate Schedule
+                </Button>
+                <DownloadPdfButton
+                  rotations={scheduleData.rotations}
+                  sessionId={sessionId || ''}
+                />
+              </div>
             )}
           </div>
         </CardHeader>
@@ -414,14 +463,31 @@ const SessionDetail = () => {
               <div className="text-muted-foreground">
                 No court schedule generated for this session yet.
               </div>
-              <Button>
+              <Button 
+                onClick={() => setScheduleDialogOpen(true)}
+                disabled={totalPlayers < 4}
+              >
                 <Play className="h-4 w-4 mr-2" />
                 Generate Schedule
               </Button>
+              {totalPlayers < 4 && (
+                <p className="text-sm text-muted-foreground">
+                  Need at least 4 players total (registered + temporary) to generate a schedule
+                </p>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Schedule Generation Dialog */}
+      <SessionScheduleDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        sessionId={sessionId || ''}
+        registeredUsers={registrations || []}
+        sessionStatus={session.Status}
+      />
     </div>
   );
 };
