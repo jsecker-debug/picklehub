@@ -21,7 +21,7 @@ export const useRotationData = (rotations: Rotation[], sessionId?: string) => {
             team1_players,
             team2_players
           ),
-          roation_resters (
+          rotation_resters (
             resting_players
           )
         `)

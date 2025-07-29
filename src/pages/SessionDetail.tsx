@@ -23,7 +23,7 @@ import { useSessions } from "@/hooks/useSessions";
 import { useSessionSchedule, useDeleteSessionSchedule } from "@/hooks/useSessionSchedule";
 import { useSessionRegistrations, useUserSessionRegistration, useRegisterForSession, useUnregisterFromSession } from "@/hooks/useSessionRegistration";
 import { useAuth } from "@/contexts/AuthContext";
-import CourtDisplay from "@/components/CourtDisplay";
+import CourtDisplayWithScoring from "@/components/CourtDisplayWithScoring";
 import DownloadPdfButton from "@/components/DownloadPdfButton";
 import SessionScheduleDialog from "@/components/session/SessionScheduleDialog";
 import TemporaryParticipantManager from "@/components/session/TemporaryParticipantManager";
@@ -452,7 +452,7 @@ const SessionDetail = () => {
               Loading court schedule...
             </div>
           ) : scheduleData?.rotations && scheduleData.rotations.length > 0 ? (
-            <CourtDisplay
+            <CourtDisplayWithScoring
               rotations={scheduleData.rotations}
               isKingCourt={false}
               sessionId={sessionId || ''}

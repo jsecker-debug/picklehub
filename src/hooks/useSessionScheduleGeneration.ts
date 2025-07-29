@@ -262,13 +262,40 @@ export const useSessionScheduleGeneration = ({
         throw new Error("No schedule to save");
       }
 
-      // First, delete any existing rotations for this session
-      const { error: deleteError } = await supabase
+      // First, delete any existing schedule for this session
+      // Get existing rotation IDs
+      const { data: existingRotations } = await supabase
         .from('rotations')
-        .delete()
+        .select('id')
         .eq('session_id', sessionId);
 
-      if (deleteError) throw deleteError;
+      if (existingRotations && existingRotations.length > 0) {
+        const rotationIds = existingRotations.map(r => r.id);
+
+        // Delete court assignments first
+        const { error: courtDeleteError } = await supabase
+          .from('court_assignments')
+          .delete()
+          .in('rotation_id', rotationIds);
+
+        if (courtDeleteError) throw courtDeleteError;
+
+        // Delete rotation resters
+        const { error: restDeleteError } = await supabase
+          .from('rotation_resters')
+          .delete()
+          .in('rotation_id', rotationIds);
+
+        if (restDeleteError) throw restDeleteError;
+
+        // Now delete the rotations
+        const { error: rotationDeleteError } = await supabase
+          .from('rotations')
+          .delete()
+          .eq('session_id', sessionId);
+
+        if (rotationDeleteError) throw rotationDeleteError;
+      }
 
       // Save each rotation
       for (let i = 0; i < rotations.length; i++) {

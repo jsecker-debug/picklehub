@@ -15,11 +15,12 @@ import {
   Minus,
   Crown,
   Star,
-  BarChart3
+  BarChart3,
+  AlertTriangle
 } from "lucide-react";
 
-type SortOption = "level" | "winrate" | "games" | "wins";
-type FilterOption = "all" | "active" | "male" | "female";
+type SortOption = "level" | "winrate" | "games" | "wins" | "confidence";
+type FilterOption = "all" | "active" | "male" | "female" | "low-confidence";
 
 const Rankings = () => {
   const { selectedClub } = useClub();
@@ -37,6 +38,8 @@ const Rankings = () => {
           return participant.gender === "M";
         case "female":
           return participant.gender === "F";
+        case "low-confidence":
+          return (participant.rating_confidence || 0) < 0.2;
         default:
           return true;
       }
@@ -50,13 +53,15 @@ const Rankings = () => {
     ?.sort((a, b) => {
       switch (sortBy) {
         case "level":
-          return (b.level || 0) - (a.level || 0);
+          return (b.skill_level || 0) - (a.skill_level || 0);
         case "winrate":
           return b.winRate - a.winRate;
         case "games":
           return b.total_games_played - a.total_games_played;
         case "wins":
           return b.wins - a.wins;
+        case "confidence":
+          return (b.rating_confidence || 0) - (a.rating_confidence || 0);
         default:
           return 0;
       }
@@ -75,11 +80,17 @@ const Rankings = () => {
     }
   };
 
-  const getLevelBadge = (level: number) => {
-    if (level >= 6) return <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20">Pro</Badge>;
-    if (level >= 4.5) return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">Advanced</Badge>;
-    if (level >= 3.5) return <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Intermediate</Badge>;
-    return <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20">Beginner</Badge>;
+  const getLevelBadge = (level: number, confidence?: number) => {
+    const isLowConfidence = (confidence || 0) < 0.2;
+    const badgeStyle = isLowConfidence ? "opacity-60" : "";
+    
+    if (level >= 5.0) return <Badge className={`bg-purple-500/10 text-purple-500 border-purple-500/20 ${badgeStyle}`}>Pro</Badge>;
+    if (level >= 4.5) return <Badge className={`bg-indigo-500/10 text-indigo-500 border-indigo-500/20 ${badgeStyle}`}>Champion</Badge>;
+    if (level >= 4.0) return <Badge className={`bg-blue-500/10 text-blue-500 border-blue-500/20 ${badgeStyle}`}>Adv Tournament</Badge>;
+    if (level >= 3.5) return <Badge className={`bg-cyan-500/10 text-cyan-500 border-cyan-500/20 ${badgeStyle}`}>Adv Intermediate</Badge>;
+    if (level >= 3.0) return <Badge className={`bg-green-500/10 text-green-500 border-green-500/20 ${badgeStyle}`}>Intermediate</Badge>;
+    if (level >= 2.5) return <Badge className={`bg-yellow-500/10 text-yellow-500 border-yellow-500/20 ${badgeStyle}`}>Adv Beginner</Badge>;
+    return <Badge className={`bg-orange-500/10 text-orange-500 border-orange-500/20 ${badgeStyle}`}>Beginner</Badge>;
   };
 
   const getWinRateTrend = (winRate: number) => {
@@ -91,8 +102,8 @@ const Rankings = () => {
   // Calculate stats for the overview
   const totalPlayers = processedParticipants.length;
   const averageLevel = totalPlayers > 0 
-    ? (processedParticipants.reduce((sum, p) => sum + (p.level || 0), 0) / totalPlayers).toFixed(1)
-    : "0.0";
+    ? (processedParticipants.reduce((sum, p) => sum + (p.skill_level || 0), 0) / totalPlayers).toFixed(2)
+    : "0.00";
   const topPlayer = processedParticipants[0];
   const averageWinRate = totalPlayers > 0
     ? (processedParticipants.reduce((sum, p) => sum + p.winRate, 0) / totalPlayers).toFixed(1)
@@ -169,6 +180,7 @@ const Rankings = () => {
                 <SelectItem value="winrate">Win Rate</SelectItem>
                 <SelectItem value="games">Games Played</SelectItem>
                 <SelectItem value="wins">Total Wins</SelectItem>
+                <SelectItem value="confidence">Rating Confidence</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -185,6 +197,7 @@ const Rankings = () => {
                 <SelectItem value="active">Active Players</SelectItem>
                 <SelectItem value="male">Male Players</SelectItem>
                 <SelectItem value="female">Female Players</SelectItem>
+                <SelectItem value="low-confidence">Low Confidence Ratings</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -239,10 +252,16 @@ const Rankings = () => {
                         {participant.name}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        {getLevelBadge(participant.level || 0)}
+                        {getLevelBadge(participant.skill_level || 0, participant.rating_confidence)}
                         <span className="text-xs text-muted-foreground">
                           {participant.gender === 'M' ? 'Male' : 'Female'}
                         </span>
+                        {(participant.rating_confidence || 0) < 0.2 && (
+                          <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/20">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Low Confidence
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -251,7 +270,7 @@ const Rankings = () => {
                   <div className="hidden sm:flex items-center gap-6 text-sm">
                     <div className="text-center">
                       <p className="font-medium text-card-foreground">
-                        {participant.level?.toFixed(1) || '0.0'}
+                        {participant.skill_level?.toFixed(2) || '0.00'}
                       </p>
                       <p className="text-xs text-muted-foreground">Level</p>
                     </div>
@@ -276,12 +295,23 @@ const Rankings = () => {
                       </p>
                       <p className="text-xs text-muted-foreground">Wins</p>
                     </div>
+                    <div className="text-center">
+                      <div className="flex items-center gap-1">
+                        <p className="font-medium text-card-foreground">
+                          {((participant.rating_confidence || 0) * 100).toFixed(1)}%
+                        </p>
+                        {(participant.rating_confidence || 0) < 0.2 && (
+                          <AlertTriangle className="h-3 w-3 text-orange-500" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Confidence</p>
+                    </div>
                   </div>
 
                   {/* Mobile Stats */}
                   <div className="sm:hidden text-right">
                     <p className="font-medium text-card-foreground">
-                      {participant.level?.toFixed(1) || '0.0'}
+                      {participant.skill_level?.toFixed(2) || '0.00'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {participant.wins}W / {participant.total_games_played}G

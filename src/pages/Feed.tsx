@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useState } from "react";
+import { useClubActivity, useRecentSessions, useRecentMembers } from "@/hooks/useClubActivity";
+import CreatePostDialog from "@/components/CreatePostDialog";
 
 // Mock data for feed items - in a real app this would come from your backend
 const mockFeedData = [
@@ -144,9 +146,14 @@ const getActivityBadge = (type: string) => {
 };
 
 const Feed = () => {
-  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [activeFilter, setActiveFilter] = useState<string>("all");
+  
+  const { data: activities = [], isLoading: isLoadingActivities } = useClubActivity();
+  const { data: recentSessions = [] } = useRecentSessions();
+  const { data: recentMembers = [] } = useRecentMembers();
 
-  const handleLike = (postId: number) => {
+  const handleLike = (postId: string) => {
     setLikedPosts(prev => {
       const newSet = new Set(prev);
       if (newSet.has(postId)) {
@@ -158,6 +165,149 @@ const Feed = () => {
     });
   };
 
+  // Transform database activities into feed format
+  const transformActivitiesToFeed = () => {
+    const feedItems: any[] = [];
+
+    // Add activities
+    activities.forEach(activity => {
+      let title = "";
+      let content = "";
+      let type = activity.type;
+      
+      switch (activity.type) {
+        case "session_created":
+          title = "New Session Scheduled";
+          content = `A new pickleball session has been scheduled${activity.target_session ? ` at ${activity.target_session.Venue}` : ""}.`;
+          break;
+        case "session_completed":
+          title = "Session Completed";
+          content = `Session completed${activity.target_session ? ` at ${activity.target_session.Venue}` : ""}.`;
+          break;
+        case "member_joined":
+          title = "New Member Joined";
+          content = `${activity.target_member ? `${activity.target_member.first_name} ${activity.target_member.last_name}` : "A new member"} has joined the club! Welcome to the community.`;
+          break;
+        case "announcement":
+          title = activity.data?.title || "Club Announcement";
+          content = activity.data?.message || "New club announcement";
+          break;
+        case "general":
+          title = activity.data?.title || "Club Update";
+          content = activity.data?.message || "General club update";
+          break;
+        case "event":
+          title = activity.data?.title || "Club Event";
+          content = activity.data?.message || "New club event";
+          break;
+        case "tournament_result":
+          title = activity.data?.title || "Tournament Results";
+          content = activity.data?.message || "Tournament results announced";
+          break;
+        default:
+          title = activity.data?.title || "Club Activity";
+          content = activity.data?.message || "Club activity update";
+      }
+
+      feedItems.push({
+        id: activity.id,
+        type: activity.type,
+        title,
+        content,
+        author: {
+          name: activity.actor_profile ? `${activity.actor_profile.first_name} ${activity.actor_profile.last_name}` : "Club Admin",
+          avatar: activity.actor_profile?.avatar_url || "",
+          initials: activity.actor_profile ? `${activity.actor_profile.first_name?.[0] || ""}${activity.actor_profile.last_name?.[0] || ""}` : "CA"
+        },
+        timestamp: new Date(activity.created_at),
+        likes: Math.floor(Math.random() * 20), // Mock likes for now
+        comments: Math.floor(Math.random() * 10), // Mock comments for now
+        metadata: {
+          ...(activity.target_session && {
+            date: activity.target_session.Date,
+            venue: activity.target_session.Venue
+          }),
+          ...(activity.target_member && {
+            level: activity.target_member.skill_level
+          })
+        }
+      });
+    });
+
+    // Add recent sessions as feed items if not already in activities
+    recentSessions.forEach(session => {
+      const existingActivity = feedItems.find(item => 
+        item.type === "session_created" && 
+        item.metadata?.date === session.Date
+      );
+      
+      if (!existingActivity) {
+        feedItems.push({
+          id: `session_${session.id}`,
+          type: "session_created",
+          title: "Session Available",
+          content: `Join the upcoming session at ${session.Venue}.`,
+          author: {
+            name: "Session Organizer",
+            avatar: "",
+            initials: "SO"
+          },
+          timestamp: new Date(session.created_at),
+          likes: Math.floor(Math.random() * 10),
+          comments: 0,
+          metadata: {
+            date: session.Date,
+            venue: session.Venue,
+            participants: Math.floor(Math.random() * 16)
+          }
+        });
+      }
+    });
+
+    // Add recent members as feed items if not already in activities
+    recentMembers.forEach(member => {
+      const existingActivity = feedItems.find(item => 
+        item.type === "member_joined" && 
+        item.author.name === `${member.user_profiles?.first_name} ${member.user_profiles?.last_name}`
+      );
+      
+      if (!existingActivity && member.user_profiles) {
+        feedItems.push({
+          id: `member_${member.id}`,
+          type: "member_joined",
+          title: "New Member Joined",
+          content: `${member.user_profiles.first_name} ${member.user_profiles.last_name} has joined the club! Welcome to the community.`,
+          author: {
+            name: `${member.user_profiles.first_name} ${member.user_profiles.last_name}`,
+            avatar: member.user_profiles.avatar_url || "",
+            initials: `${member.user_profiles.first_name?.[0] || ""}${member.user_profiles.last_name?.[0] || ""}`
+          },
+          timestamp: new Date(member.joined_at),
+          likes: Math.floor(Math.random() * 15),
+          comments: Math.floor(Math.random() * 5),
+          metadata: {
+            level: member.user_profiles.skill_level
+          }
+        });
+      }
+    });
+
+    // Sort by timestamp (most recent first)
+    return feedItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  };
+
+  const feedData = transformActivitiesToFeed();
+  
+  // Filter feed data based on active filter
+  const filteredFeedData = feedData.filter(item => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "sessions") return item.type.includes("session");
+    if (activeFilter === "members") return item.type === "member_joined";
+    if (activeFilter === "tournaments") return item.type === "tournament_result";
+    if (activeFilter === "announcements") return item.type === "announcement";
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -168,24 +318,60 @@ const Feed = () => {
             Stay updated with club activities and announcements
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Create Post
-        </Button>
+        <CreatePostDialog />
       </div>
 
       {/* Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">
-        <Button variant="default" size="sm">All</Button>
-        <Button variant="outline" size="sm">Sessions</Button>
-        <Button variant="outline" size="sm">Members</Button>
-        <Button variant="outline" size="sm">Tournaments</Button>
-        <Button variant="outline" size="sm">Announcements</Button>
+        <Button 
+          variant={activeFilter === "all" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveFilter("all")}
+        >
+          All
+        </Button>
+        <Button 
+          variant={activeFilter === "sessions" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveFilter("sessions")}
+        >
+          Sessions
+        </Button>
+        <Button 
+          variant={activeFilter === "members" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveFilter("members")}
+        >
+          Members
+        </Button>
+        <Button 
+          variant={activeFilter === "tournaments" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveFilter("tournaments")}
+        >
+          Tournaments
+        </Button>
+        <Button 
+          variant={activeFilter === "announcements" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveFilter("announcements")}
+        >
+          Announcements
+        </Button>
       </div>
 
       {/* Feed Items */}
       <div className="space-y-4">
-        {mockFeedData.map((item) => (
+        {isLoadingActivities ? (
+          <Card className="p-8 text-center bg-card border-border">
+            <p className="text-muted-foreground">Loading club activities...</p>
+          </Card>
+        ) : filteredFeedData.length === 0 ? (
+          <Card className="p-8 text-center bg-card border-border">
+            <p className="text-muted-foreground">No activities to show yet.</p>
+          </Card>
+        ) : (
+          filteredFeedData.map((item) => (
           <Card key={item.id} className="p-6 bg-card border-border">
             <div className="space-y-4">
               {/* Header */}
@@ -252,15 +438,15 @@ const Feed = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleLike(item.id)}
+                  onClick={() => handleLike(item.id.toString())}
                   className={`flex items-center gap-2 ${
-                    likedPosts.has(item.id) ? 'text-red-500' : 'text-muted-foreground'
+                    likedPosts.has(item.id.toString()) ? 'text-red-500' : 'text-muted-foreground'
                   }`}
                 >
                   <Heart 
-                    className={`h-4 w-4 ${likedPosts.has(item.id) ? 'fill-current' : ''}`} 
+                    className={`h-4 w-4 ${likedPosts.has(item.id.toString()) ? 'fill-current' : ''}`} 
                   />
-                  {item.likes + (likedPosts.has(item.id) ? 1 : 0)}
+                  {item.likes + (likedPosts.has(item.id.toString()) ? 1 : 0)}
                 </Button>
                 <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground">
                   <MessageCircle className="h-4 w-4" />
@@ -273,7 +459,7 @@ const Feed = () => {
               </div>
             </div>
           </Card>
-        ))}
+        )))}
       </div>
 
       {/* Load More */}

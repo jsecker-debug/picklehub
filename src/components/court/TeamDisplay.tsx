@@ -31,15 +31,15 @@ const TeamDisplay = ({
   restingPlayers,
 }: TeamDisplayProps) => {
   // Get all players from all courts in the current rotation
-  const allRotationPlayers = allCourts.reduce((acc: string[], court) => {
-    return [...acc, ...court.team1, ...court.team2];
+  const allRotationPlayers = (allCourts || []).reduce((acc: string[], court) => {
+    return [...acc, ...(court.team1 || []), ...(court.team2 || [])];
   }, []);
 
   return (
     <div className="flex justify-between items-center p-3 rounded-lg border-2 border-muted/20 bg-accent/5 hover:bg-accent/10 transition-colors">
       <span className="text-sm font-semibold text-card-foreground bg-accent/20 px-2 py-1 rounded">{label}:</span>
       <span className="font-medium space-x-2">
-        {players.map((player, playerIdx) => (
+        {(players || []).map((player, playerIdx) => (
           <DraggablePlayer
             key={playerIdx}
             player={player}

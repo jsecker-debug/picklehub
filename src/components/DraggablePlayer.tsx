@@ -79,8 +79,8 @@ const DraggablePlayer = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenu>
+        <DropdownMenu>
+          <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <button type="button" className="cursor-pointer select-none hover:bg-primary/10 hover:border-primary/20 px-3 py-2 rounded-md border-2 border-transparent bg-primary/5 inline-flex items-center gap-1 transition-all font-medium shadow-sm">
                 <span className="text-card-foreground">{player}</span>
@@ -88,22 +88,22 @@ const DraggablePlayer = ({
                 <Repeat className="h-3 w-3 text-muted-foreground opacity-60" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              className="bg-card border-border z-50"
-              align="end"
-            >
-              {availablePlayers.map((p) => (
-                <DropdownMenuItem
-                  key={p}
-                  onClick={() => handleClick(p)}
-                  className="flex items-center gap-2"
-                >
-                  <span>{p}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TooltipTrigger>
+          </TooltipTrigger>
+          <DropdownMenuContent 
+            className="bg-card border-border z-50"
+            align="end"
+          >
+            {availablePlayers.map((p) => (
+              <DropdownMenuItem
+                key={p}
+                onClick={() => handleClick(p)}
+                className="flex items-center gap-2"
+              >
+                <span>{p}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <TooltipContent>
           <p>Click to swap with another player</p>
         </TooltipContent>
